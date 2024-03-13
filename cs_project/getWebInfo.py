@@ -12,7 +12,7 @@ proxies = {
 }
 
 mapCurrency = {
-    "1":"USD"
+    "1": "USD"
 }
 
 
@@ -32,13 +32,43 @@ def funcStart():
 
 
 def funcGetSteamInfo():
+    total_count = 0  # 总和计数
+    ret, total_count = _getCSItemTotal()
+    if not ret:
+        return False
+
+    index = 0
+    json_data = []
+    while True:
+        url = f"https://steamcommunity.com/market/search/render/?query=&start={index}&count=500&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
+        if index >= total_count:
+            break
+        else:
+            index += 500
+            print(f"index:{index}")
+
+        req = {}
+        response = requests.post(url, req, headers=_getHeaders(), proxies=proxies)
+        element = json.loads(response.content)
+        data = init_data(element["results_html"])
+        # print(element["results_html"])
+
+        json_data.append(html_to_json(data))
+
+    print(json_data)
+
+def _getCSItemTotal():
     url = "https://steamcommunity.com/market/search/render/?query=&start=10&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
     req = {}
     response = requests.post(url, req, headers=_getHeaders(), proxies=proxies)
     element = json.loads(response.content)
-    data = init_data(element["results_html"])
-    # print(element["results_html"])
-    json_data = html_to_json(data)
+    print(element)
+    if element['success'] != True:
+        print("_getCSItemTotal try connect faild!")
+        return False
+
+    total_count = element['total_count']
+    return True, total_count
 
 
 # AES加密
@@ -112,7 +142,7 @@ def html_to_json(element):
             'sell_online_count': sale_online_count,
             'pic_url': "",
             'show_prices': show_sale_prices,
-            'prices':sale_price,
+            'prices': sale_price,
             'currency': sale_currency
         }
 
