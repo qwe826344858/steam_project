@@ -40,11 +40,11 @@ def funcGetSteamInfo():
     index = 0
     json_data = []
     while True:
-        url = f"https://steamcommunity.com/market/search/render/?query=&start={index}&count=500&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
+        url = f"https://steamcommunity.com/market/search/render/?query=&start={index}&count=100&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
         if index >= total_count:
             break
         else:
-            index += 500
+            index += 100
             print(f"index:{index}")
 
         req = {}
@@ -58,7 +58,7 @@ def funcGetSteamInfo():
     print(json_data)
 
 def _getCSItemTotal():
-    url = "https://steamcommunity.com/market/search/render/?query=&start=10&count=10&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
+    url = "https://steamcommunity.com/market/search/render/?query=&start=10&count=100&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
     req = {}
     response = requests.post(url, req, headers=_getHeaders(), proxies=proxies)
     element = json.loads(response.content)
