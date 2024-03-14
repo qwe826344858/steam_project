@@ -1,4 +1,7 @@
 import json
+import random
+import time
+
 import requests
 import base64
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -33,6 +36,7 @@ def funcStart():
 
 def funcGetSteamInfo():
     total_count = 0  # 总和计数
+    retry_count = 0  # 重试次数
     ret, total_count = _getCSItemTotal()
     if not ret:
         return False
@@ -46,16 +50,36 @@ def funcGetSteamInfo():
         else:
             index += 100
             print(f"index:{index}")
+            time.sleep(random.uniform(0.1, 0.5))
 
         req = {}
         response = requests.post(url, req, headers=_getHeaders(), proxies=proxies)
+        if response.status_code != 200:
+            print(f"请求被拦截了,延迟60秒再重试下 index:{index}")
+            time.sleep(60)
+            if retry_count > 5:
+                print(f"重试次数超过5次,关闭程序 count:{retry_count}")
+                break
+            index -= 100
+            retry_count += 1
+            continue
+        else :
+            if retry_count > 0:
+                print(f"清空重试次数 count:{retry_count}")
+                retry_count = 0
+
         element = json.loads(response.content)
         data = init_data(element["results_html"])
+        if data == None:
+            break
         # print(element["results_html"])
 
         json_data.append(html_to_json(data))
 
-    print(json_data)
+    file = open("log.txt", "w")
+    file.write(json.dumps(json_data))
+    file.close()
+
 
 def _getCSItemTotal():
     url = "https://steamcommunity.com/market/search/render/?query=&start=10&count=100&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
@@ -63,9 +87,13 @@ def _getCSItemTotal():
     response = requests.post(url, req, headers=_getHeaders(), proxies=proxies)
     element = json.loads(response.content)
     print(element)
+    if element == None:
+        print("element is None")
+        return False, 0
+
     if element['success'] != True:
         print("_getCSItemTotal try connect faild!")
-        return False
+        return False, 0
 
     total_count = element['total_count']
     return True, total_count
@@ -146,7 +174,8 @@ def html_to_json(element):
             'currency': sale_currency
         }
 
-    print(json.dumps(getData))
+    # print(json.dumps(getData))
+    return getData
 
 
 # 获取请求头
