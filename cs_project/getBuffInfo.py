@@ -16,19 +16,22 @@ item_type = ['knife']
 
 max_retry = 5
 
+
+# 取buff信息
 def getBuffInfo():
     page = 1
     page_size = 500
     retry_count = 0
-    all_data = []
+    all_data = {}
 
     # 请求获取数据
     while 1:
-        #url = f"https://buff.163.com/api/market/sell_order/top_bookmarked"
-        #sell_type = "top_bookmarked"
+        # url = f"https://buff.163.com/api/market/sell_order/top_bookmarked"
+        # sell_type = "top_bookmarked"
         url = "https://buff.163.com/api/market/goods"
         sell_type = "goods"
-        response = requests.get(url, params=_apiInput(page,page_size), cookies=_getCookie(), headers=_getHeaders(), proxies=proxies)
+        response = requests.get(url, params=_apiInput(page, page_size), cookies=_getCookie(), headers=_getHeaders(),
+                                proxies=proxies)
         if response.status_code != 200:
             if retry_count > max_retry:
                 print(f"getBuffInfo 请求失败 {response.status_code} retry_count:{retry_count} response:{response.content}")
@@ -44,11 +47,7 @@ def getBuffInfo():
                 retry_count = 0
 
         data = json.loads(response.content)
-        file = open("test_buff.txt", "a", encoding='utf-8')
-        file.write(json.dumps(data, ensure_ascii=False))
-        file.close()
-
-        all_data.append(_tranLocalData(data,sell_type))
+        all_data.update(_tranLocalData(data, sell_type))
 
         if data['data']['total_page'] <= page:
             print(f"已获取全部数据! total_page:{data['data']['total_page']} current_page:{page}")
@@ -56,35 +55,22 @@ def getBuffInfo():
         else:
             page += 1
             # 随机下模拟时间
-            sleep_time = random.random();
+            sleep_time = random.random()
             print(f"sleep_time:{sleep_time} page:{page}")
             time.sleep(sleep_time)
 
     item_count = len(all_data)
     file_data = {
         "data": all_data,
-        "itme_count":item_count
+        "itme_count": item_count
     }
+
+    # 释放掉占用的内存
     all_data = []
-    file = open("buff_cs_item.txt", "w",encoding='utf-8')
-    file.write(json.dumps(file_data,ensure_ascii=False))
+    file = open("buff_cs_item.txt", "w", encoding='utf-8')
+    file.write(json.dumps(file_data, ensure_ascii=False))
     file.close()
 
-
-def getItemTotal():
-    url = f"https://buff.163.com/api/market/sell_order/top_bookmarked"
-    response = requests.get(url, params=_apiInput(), cookies=_getCookie(), headers=_getHeaders(), proxies=proxies)
-    if response.status_code != 200:
-        print(f"getItemTotal 请求失败 {response.status_code}")
-        return False, {}
-
-    data = json.loads(response.content)
-    ret = {
-        'total_count': data['data']['total_count'],
-        'total_page': data['data']['total_page'],
-    }
-
-    return True, ret
 
 
 def _transGoodsInfos_top(rawGoodsInfos):
@@ -164,9 +150,10 @@ def _transIteasInfos_common(rawItems):
 
     return retData
 
+
 # 转出本地使用的数据
-def _tranLocalData(data , sell_type):
-    if sell_type == "top_bookmarked":   #热门视频
+def _tranLocalData(data, sell_type):
+    if sell_type == "top_bookmarked":  # 热门视频
         rawGoodsInfos = data['data']['goods_infos']
         rawItems = data['data']['items']
         return _transItemsInfos_top(_transGoodsInfos_top(rawGoodsInfos), rawItems)
