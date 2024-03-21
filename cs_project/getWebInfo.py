@@ -76,8 +76,8 @@ def funcGetSteamInfo():
 
         json_data.append(html_to_json(data))
 
-    file = open("log.txt", "w")
-    file.write(json.dumps(json_data))
+    file = open("log.txt", "w",encoding='utf-8')
+    file.write(json.dumps(json_data,ensure_ascii=False))
     file.close()
 
 

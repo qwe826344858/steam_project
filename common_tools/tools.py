@@ -14,6 +14,13 @@ def _cUrlTrans(cUrl_bash, lang='python'):
     return pyCode
 
 
+def setReturn(errCode=0, errMsg='success', data={}):
+    return {
+        "errCode": errCode,
+        "errMsg": errMsg,
+        "data": data,
+    }
+
 
 # cUrl(bash) 转 对应语言的代码
 if __name__ == '__main__':
@@ -31,5 +38,3 @@ if __name__ == '__main__':
   -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0' \
   -H 'x-requested-with: XMLHttpRequest'"
     _cUrlTrans(str, 'go')
-
-
