@@ -1,6 +1,12 @@
 import json
 import requests
 
+errInfo = {
+    "ERR_REQUEST":{
+        "errCode": 10001,
+        "errMsg": "请求失败",
+    }
+}
 
 def _cUrlTrans(cUrl_bash, lang='python'):
     pyCode = ''
@@ -20,6 +26,22 @@ def setReturn(errCode=0, errMsg='success', data={}):
         "errMsg": errMsg,
         "data": data,
     }
+
+# 传值为空时 根据类型赋值默认值
+def initSet(variable,type = "str"):
+    try:
+        variable
+    except NameError:
+        if type == "str":
+            return ""
+        elif type == "num":
+            return 0
+        elif type == "arr":
+            return []
+        elif type == "obj":
+            return {}
+    else:
+        return variable
 
 
 # cUrl(bash) 转 对应语言的代码
