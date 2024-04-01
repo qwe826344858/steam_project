@@ -16,6 +16,8 @@ item_type_list = ['knife','hands','rifle','pistol','smg','shotgun','machinegun',
 # 最大重试次数
 max_retry = 5
 
+# TODO session  怎么去请求服务器刷新呢？
+session = '1-_WCb5E-Z6GiXSZ4qY7_SREQ6epqxnSPiSZr2ux2FGYWO2046181492'
 
 # 取buff信息
 def getBuffInfo():
@@ -136,26 +138,30 @@ def _transIteasInfos_common(rawItems):
             # "paintindex": v['asset_info']['info']['paintindex'],  # 皮肤编号
             # "paintseed": v['asset_info']['info']['paintseed'],  # 图案模板
             # "paintwear": v['asset_info']['paintwear'],  # 具体磨损数值
-            "exterior": {  # 磨损昵称
+        }
+
+        try:
+            retData[v['id']]["exterior"] = {  # 磨损昵称
                 "internal_name": v['goods_info']['info']['tags']['exterior']['internal_name'],
                 "localized_name": v['goods_info']['info']['tags']['exterior']['localized_name'],
-            },
-            "quality": {  # 是否 StatTrak™
+            }
+            retData[v['id']]["quality"] = {  # 是否 StatTrak™
                 "internal_name": v['goods_info']['info']['tags']['quality']['internal_name'],
                 "localized_name": v['goods_info']['info']['tags']['quality']['localized_name'],
-            },
-            "rarity": {  # 品质等级
+            }
+            retData[v['id']]["rarity"] = {  # 品质等级
                 "internal_name": v['goods_info']['info']['tags']['rarity']['internal_name'],
                 "localized_name": v['goods_info']['info']['tags']['rarity']['localized_name'],
             }
-        }
+        except:
+            continue
 
     return retData
 
 
 # 转出本地使用的数据
 def _tranLocalData(data, sell_type):
-    if sell_type == "top_bookmarked":  # 热门视频
+    if sell_type == "top_bookmarked":  # 热门饰品
         rawGoodsInfos = data['data']['goods_infos']
         rawItems = data['data']['items']
         return _transItemsInfos_top(_transGoodsInfos_top(rawGoodsInfos), rawItems)
@@ -195,9 +201,13 @@ def _getCookie():
         'Locale-Supported': 'zh-Hans',
         'game': 'csgo',
         'remember_me': 'U1094246188|wNCHnSpCUJk3WLvEnSWyl4pJqgJo7TPU',
-        'session': '1-SaXyNMgDBX7Mn-ph9Mu5Tp3ADDsv-McHJfg8pHbbRC2G2046181492',
+        'session': session,
         'csrf_token': 'ImQyMWRmZGFlM2JlZTUzNmI0Y2RjZDQ0ODg0OTA4MjliYTcxYzNlY2Ui.GNmOXQ.WD2l80DK3bTyEzWfinJT-1rXgM4',
     }
+
+    # 'remember_me': 'U1094246188|C2eJpHmMuyBZlfsKgadBkbnkq3j8xtEd',
+    # 'session': '1-_WCb5E-Z6GiXSZ4qY7_SREQ6epqxnSPiSZr2ux2FGYWO2046181492',
+    # 'csrf_token': 'IjAxZjcwNmFkN2ViNjRlOGU1N2RhM2JkMWY2NTczODk5MmM3NTcwNDMi.GOQCxg.7kEtNBT_SR20Xvh0q3IwmSXLRxQ',
     return cookies
 
 
