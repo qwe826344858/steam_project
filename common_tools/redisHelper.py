@@ -30,15 +30,13 @@ def initConnect(pool_connect):
         if not pool_connect:
             # Redis 连接池申请连接
             pool = redis.ConnectionPool(host=redis_host, port=redis_port, db=redis_db)
-            redis_connect = redis.Redis(connection_pool=pool).get()
-            ret = redis_connect.get("asd",10).persist
         else:
             pool = pool_connect
     except Exception as e:
         print(f"redis创建连接! pool_connect:{pool_connect} errMsg:{e}")
         return False,None
 
-    return True,pool_connect
+    return True,pool
 
 
 # 获取 Redis 连接
