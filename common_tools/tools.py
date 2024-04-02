@@ -1,5 +1,7 @@
 import json
 import requests
+import os
+import inspect
 
 errInfo = {
     "ERR_REQUEST":{
@@ -42,6 +44,21 @@ def initSet(variable,type = "str"):
             return {}
     else:
         return variable
+
+
+# 获取调用方的文件路径
+def getCurrentFileInfo():
+    frame = inspect.currentframe().f_back
+    file_info = inspect.getframeinfo(frame)
+    file_name = file_info.filename
+    file_path = os.path.abspath(file_name)
+    return file_name, file_path
+
+# 获取调用方的函数名称
+def getCurrentMethodName():
+    frame = inspect.currentframe().f_back
+    method_name = frame.f_code.co_name
+    return method_name
 
 
 # cUrl(bash) 转 对应语言的代码
