@@ -231,7 +231,7 @@ def saveInfo2RDS(data,name):
     redis_conn = get_redis_connection()
     for k, val in data.items():
         key = f"{name}_{k}"
-        json = json.dumps(val)
+        json = json.dumps(val,ensure_ascii=False)
         setRedisHash(name,key,json)
 
     setExpireTime(name=name,expire_time=0)  # key->val 数据比较特殊,最好在全部赋值完之后统一设置过期时间
