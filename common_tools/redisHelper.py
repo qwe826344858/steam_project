@@ -1,4 +1,7 @@
 import redis
+
+import sys
+sys.path.append("/home/lighthouse/test_py/common_tools")
 from tools import getCurrentFileInfo, getCurrentMethodName, setReturn, initSet
 
 errCode = 0
@@ -34,9 +37,9 @@ def initConnect(pool_connect):
             pool = pool_connect
     except Exception as e:
         print(f"redis创建连接! pool_connect:{pool_connect} errMsg:{e}")
-        return False,None
+        return False, None
 
-    return True,pool
+    return True, pool
 
 
 # 获取 Redis 连接
@@ -63,8 +66,8 @@ def release_redis_connection(redis_connect):
 
 
 # 设置字符串
-def setRedisString(name,value, expire=expire_time):
-    redis_connect.set(name=name, value=value,expire=expire)
+def setRedisString(name, value, expire=expire_time):
+    redis_connect.set(name=name, value=value, expire=expire)
     return True
 
 
@@ -88,7 +91,7 @@ def delRedisString(name):
 
 # 设置Hash key和value
 def setRedisHash(name, key, value, expire=expire_time):
-    ret = redis_connect.hset(name=name,key=key, value=value, expire=expire)
+    ret = redis_connect.hset(name=name, key=key, value=value, expire=expire)
     print(f"{getCurrentMethodName()} ret:{ret}")
     return True
 
@@ -96,11 +99,11 @@ def setRedisHash(name, key, value, expire=expire_time):
 # 获取Hash value
 def getRedisHash(name, key):
     try:
-        obj = redis_connect.hget(name,key)
+        obj = redis_connect.hget(name, key)
         return True, obj
     except Exception as e:
         print(f"{getCurrentMethodName()} 获取Hash value失败! name:{name} key:{key} errMsg:{e}")
-        return False,{}
+        return False, {}
 
 
 # 获取Hash 所有的key和value
@@ -110,26 +113,26 @@ def getRedisAllHash(name):
         return True, arr
     except Exception as e:
         print(f"{getCurrentMethodName()} 获取所有Hash value失败! name:{name} errMsg:{e}")
-        return False,[]
+        return False, []
 
 
 # 删除 Hash对应的key
 def delRedisHash(name, key):
     try:
-        ret = redis_connect.hdel(name,key)
+        ret = redis_connect.hdel(name, key)
     except Exception as e:
         print(f"{getCurrentMethodName()} 删除Hash value失败! name:{name} key:{key} errMsg:{e}")
         return False
 
     return True
 
+
 # 设置过期时间
-def setExpireTime(name,expire_time):
+def setExpireTime(name, expire_time):
     if expire_time == 0:
         ret = redis_connect.persist(name)
     else:
-        ret = redis_connect.expire(name,expire_time)
-
+        ret = redis_connect.expire(name, expire_time)
 
     print(f"{getCurrentMethodName()} name:{name} expire_time:{expire_time} ret:{ret}")
     return True

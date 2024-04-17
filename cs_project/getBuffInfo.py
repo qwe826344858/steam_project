@@ -3,7 +3,9 @@ import random
 import time
 
 import requests
-
+import sys
+sys.path.append("/home/lighthouse/test_py")
+from common_tools.redisHelper import get_redis_connection, release_redis_connection, setRedisHash
 from common_tools.tools import setReturn, errInfo
 
 proxies = {
@@ -17,11 +19,11 @@ item_type_list = ['knife','hands','rifle','pistol','smg','shotgun','machinegun',
 max_retry = 5
 
 # TODO session  怎么去请求服务器刷新呢？
-session = '1-_WCb5E-Z6GiXSZ4qY7_SREQ6epqxnSPiSZr2ux2FGYWO2046181492'
+session = '1-yiQ3v2F83rZmKoWBTjkbq9rS474updPTm6NegCEv4XY72046181492'
 
 # 取buff信息
 def getBuffInfo():
-    for itme_type in item_type_list:
+    for item_type in item_type_list:
         page = 1
         page_size = 500
         retry_count = 0
@@ -33,13 +35,12 @@ def getBuffInfo():
             # sell_type = "top_bookmarked"
             url = "https://buff.163.com/api/market/goods"
             sell_type = "goods"
-            response = requests.get(url, params=_apiInput(page, page_size,category_group=itme_type), cookies=_getCookie(), headers=_getHeaders(),
+            response = requests.get(url, params=_apiInput(page, page_size,category_group=item_type), cookies=_getCookie(), headers=_getHeaders(),
                                     proxies=proxies)
             if response.status_code != 200:
                 if retry_count > max_retry:
                     print(f"getBuffInfo 请求失败 {response.status_code} retry_count:{retry_count} response:{response.content}")
-                    return setReturn(errcode=errInfo['ERR_REQUEST']['errCode'], errMsg=errInfo['ERR_REQUEST']['errMsg'],
-                                     data={})
+                    return setReturn(errcode=errInfo['ERR_REQUEST']['errCode'], errMsg=errInfo['ERR_REQUEST']['errMsg'],data={})
                 else:
                     print(f"getBuffInfo 重试第{retry_count}次 5秒后重试")
                     time.sleep(5)
@@ -61,9 +62,10 @@ def getBuffInfo():
                 # 随机下请求时间 模拟人为操作
                 # TODO 动态切换代理ip
                 sleep_time = random.random()
-                print(f"itme_type:{itme_type} sleep_time:{sleep_time} page:{page}")
+                print(f"item_type:{item_type} sleep_time:{sleep_time} page:{page}")
                 time.sleep(sleep_time)
 
+        saveInfo2RDS(all_data,item_type)
         item_count = len(all_data)
         file_data = {
             "data": all_data,
@@ -72,7 +74,7 @@ def getBuffInfo():
 
         # 释放掉占用的内存
         all_data = []
-        file = open(f"buff_cs_item_{itme_type}.txt", "w", encoding='utf-8')
+        file = open(f"buff_cs_item_{item_type}.txt", "w", encoding='utf-8')
         file.write(json.dumps(file_data, ensure_ascii=False))
         file.close()
 
@@ -222,6 +224,16 @@ def _apiInput(page_num=1, page_size=20, category_group='knife'):
         'sort_by': 'price.desc',        # 按价格倒叙排序
     }
     return params
+
+
+def saveInfo2RDS(data,name):
+    #data 是纯object类型 所以取的时候取items()
+    redis_conn = get_redis_connection()
+    for k, val in data.items():
+        key = f"{name}_{k}"
+        setRedisHash(name,key,val,0)
+    release_redis_connection(redis_conn)
+    return True
 
 
 if __name__ == '__main__':
