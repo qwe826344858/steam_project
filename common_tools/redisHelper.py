@@ -67,7 +67,8 @@ def release_redis_connection(redis_connect):
 
 # 设置字符串
 def setRedisString(name, value, expire=expire_time):
-    redis_connect.set(name=name, value=value, expire=expire)
+    redis_connect.set(name=name, value=value)
+    setExpireTime(name=name,expire_time=expire)
     return True
 
 
@@ -90,8 +91,8 @@ def delRedisString(name):
 
 
 # 设置Hash key和value
-def setRedisHash(name, key, value, expire=expire_time):
-    ret = redis_connect.hset(name=name, key=key, value=value, expire=expire)
+def setRedisHash(name, key, value):
+    ret = redis_connect.hset(name=name, key=key, value=value)
     print(f"{getCurrentMethodName()} ret:{ret}")
     return True
 

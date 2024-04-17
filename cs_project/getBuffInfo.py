@@ -5,7 +5,7 @@ import time
 import requests
 import sys
 sys.path.append("/home/lighthouse/test_py")
-from common_tools.redisHelper import get_redis_connection, release_redis_connection, setRedisHash
+from common_tools.redisHelper import get_redis_connection, release_redis_connection, setRedisHash, setExpireTime
 from common_tools.tools import setReturn, errInfo
 
 proxies = {
@@ -231,7 +231,10 @@ def saveInfo2RDS(data,name):
     redis_conn = get_redis_connection()
     for k, val in data.items():
         key = f"{name}_{k}"
-        setRedisHash(name,key,val,0)
+        json = json.dumps(val)
+        setRedisHash(name,key,json)
+
+    setExpireTime(name=name,expire_time=0)  # key->val 数据比较特殊,最好在全部赋值完之后统一设置过期时间
     release_redis_connection(redis_conn)
     return True
 
