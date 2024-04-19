@@ -1,3 +1,4 @@
+import datetime
 import json
 import random
 import time
@@ -53,6 +54,16 @@ def getBuffInfo():
 
             data = json.loads(response.content)
             all_data.update(_tranLocalData(data, sell_type))
+
+            if data['error'] != "":
+                current_time = datetime.now()
+                timestamp = current_time.timestamp()
+                errStr = f"\n\nitem_type:{item_type} time:{current_time} ==> {timestamp}  url:{url}  page:{page}  errMsg:{data['error']}"
+                file = open(f"buff_cs_item_{item_type}.txt", "w", encoding='utf-8')
+                file.write(errStr)
+                file.close()
+                return False
+
 
             if data['data']['total_page'] <= page:
                 print(f"已获取全部数据! total_page:{data['data']['total_page']} current_page:{page}")

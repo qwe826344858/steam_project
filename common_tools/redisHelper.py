@@ -55,7 +55,7 @@ def get_redis_connection():
 
 
 # 释放 Redis 连接
-def release_redis_connection(redis_connect):
+def release_redis_connection():
     try:
         redis_connect.close()
     except Exception as e:
