@@ -27,14 +27,17 @@ class DBHelper:
                 database=self.database
             )
             print("连接成功")
-
+            return True
         except mysql.connector.Error as error:
             print("连接数据库时出错: {}".format(error))
+            return False
 
     def disconnect(self):
         if self.connection.is_connected():
             self.connection.close()
             print("断开连接")
+        else:
+            print("无连接,无需释放连接")
 
     def execute_query(self, query):
         try:
