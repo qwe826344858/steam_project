@@ -1,4 +1,8 @@
 import mysql
+import mysql.connector
+
+import sys
+sys.path.append("/home/lighthouse/test_py/common_tools")
 from commonConfig import CommonConfig
 
 # default
@@ -9,14 +13,20 @@ from commonConfig import CommonConfig
 # self.connection = None
 
 class DBHelper:
-    def __init__(self, host, username, password, database):
-        self = CommonConfig.getMysqlConfig(self)
-        if self.host is None or self.username is None or self.password is None or self.password is None :
-            self.host = host
-            self.username = username
-            self.password = password
-            self.database = database
-            self.connection = None
+    host = ''
+    username = ''
+    password = ''
+    database = ''
+    connection = None
+    table_name = ''
+
+    def __init__(self, host, username, password, database, connection,table_name):
+        self.host = host
+        self.username = username
+        self.password = password
+        self.database = database
+        self.connection = connection
+        self.table_name = table_name
 
     def connect(self):
         try:
@@ -39,15 +49,18 @@ class DBHelper:
         else:
             print("无连接,无需释放连接")
 
+        return True
+
     def execute_query(self, query):
         try:
             cursor = self.connection.cursor()
             cursor.execute(query)
             result = cursor.fetchall()
-            return result
+            return True,result
 
         except mysql.connector.Error as error:
             print("执行查询时出错: {}".format(error))
+            return False,{}
 
     def execute_update(self, query):
         try:
@@ -55,10 +68,12 @@ class DBHelper:
             cursor.execute(query)
             self.connection.commit()
             print("更新成功")
+            return True
 
         except mysql.connector.Error as error:
             print("执行更新时出错: {}".format(error))
             self.connection.rollback()
+            return False
 
     def execute_delete(self, query):
         try:
@@ -66,10 +81,12 @@ class DBHelper:
             cursor.execute(query)
             self.connection.commit()
             print("删除成功")
+            return True
 
         except mysql.connector.Error as error:
             print("执行删除时出错: {}".format(error))
             self.connection.rollback()
+            return False
 
     def execute_insert(self, query):
         try:
@@ -77,7 +94,12 @@ class DBHelper:
             cursor.execute(query)
             self.connection.commit()
             print("插入成功")
+            return True
 
         except mysql.connector.Error as error:
             print("执行插入时出错: {}".format(error))
             self.connection.rollback()
+            return False
+
+    def _getLastSQL(self):
+        return ""
