@@ -19,7 +19,7 @@ mapCurrency = {
 }
 
 # 被拉进小黑屋力 迟点再请求重试吧
-retry_sleep_time = 300
+retry_sleep_time = 120
 
 def funcStart():
     url = "https://gateway.inshealth.cc/api/insUnderwriting/multiplayer/searchDiseaseModuleList?deptCode=8888"
