@@ -13,10 +13,7 @@ class CS_SteamItem_Timer:
         commonConfig = CommonConfig()
         mysql_config = commonConfig.getMysqlConfig()
 
-        dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database, connection=mysql_config['connection'],table_name=self.table_name)
-        if dbHelper.connect() == False:
-            print(f"连接数据库失败 database:{self.database}")
-            return False
+        dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
 
         """ 
         # 增
@@ -60,7 +57,6 @@ class CS_SteamItem_Timer:
         print(f"data:{data}")
 
 
-        dbHelper.disconnect()
         print(f"config:{mysql_config}")
         return True
 

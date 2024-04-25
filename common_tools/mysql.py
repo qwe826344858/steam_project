@@ -13,20 +13,38 @@ from commonConfig import CommonConfig
 # self.connection = None
 
 class DBHelper:
+    # DB 连接参数
     host = ''
     username = ''
     password = ''
     database = ''
     connection = None
+
+    # 数据库表名
     table_name = ''
 
-    def __init__(self, host, username, password, database, connection,table_name):
+    instance = None     # 单例 防止重复创建
+
+    def __new__(cls, host, username, password, database, table_name):
+        print("DBHelper 创建对象")
+        # 检查实例是否已经存在，如果存在，则直接返回该实例
+        if not DBHelper.instance:
+            DBHelper.instance = super().__new__(cls)
+        return DBHelper.instance
+
+    def __init__(self, host, username, password, database,table_name):
+        print("DBHelper 初始化")
         self.host = host
         self.username = username
         self.password = password
         self.database = database
-        self.connection = connection
         self.table_name = table_name
+        self.connect()
+
+
+    def __del__(self):
+        print("DBHelper 析构")
+        self.disconnect()
 
     def connect(self):
         try:
