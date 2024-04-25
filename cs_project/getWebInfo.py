@@ -164,9 +164,16 @@ def html_to_json(element):
         show_sale_prices = sale_price_next[0].select(".normal_price")[0].text
         sale_price = sale_price_next[0].select(".normal_price")[0].attrs['data-price']
         sale_currency = mapCurrency[sale_price_next[0].select(".normal_price")[0].attrs['data-currency']]
-        print()
+
+
+        # 获取中文名称
+        item_name_block_info = level_Name.select(".market_listing_item_name_block")
+        item_name_block_span = item_name_block_info[0].select(".market_listing_item_name")
+        item_cn_name = item_name_block_span[0].text
+
 
         getData[nameInfo['data-hash-name']] = {
+            'item_cn_name':item_cn_name,
             'sell_online_count': sale_online_count,
             'pic_url': "",
             'show_prices': show_sale_prices,
