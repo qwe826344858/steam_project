@@ -3,6 +3,10 @@ import sys
 sys.path.append("/home/lighthouse/test_py")
 from common_tools.commonConfig import CommonConfig
 from common_tools.mysql import DBHelper
+from common_tools.loggerHelper import Logger
+
+# 初始化日志
+Logger.init()
 
 class CS_SteamItem_Timer:
 
@@ -60,8 +64,9 @@ class CS_SteamItem_Timer:
         print(f"config:{mysql_config}")
         return True
 
-
+    def testlog(self):
+        Logger.info("只是测试日志哦!")
 
 if __name__ == '__main__':
     api = CS_SteamItem_Timer()
-    api.test()
+    api.testlog()

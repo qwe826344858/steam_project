@@ -17,8 +17,9 @@ class CommonConfig:
         }
 
     # 获取保存日志的文件路径
-    def _getLogSavePath(self):
-        return self.save_path
+    @classmethod
+    def _getLogSavePath(cls):
+        return cls.save_path
 
 
     # 获取日志配置信息

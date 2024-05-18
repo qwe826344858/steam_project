@@ -25,6 +25,11 @@ def __init__(pool_connect=None):
     current_file_name, current_file_path = getCurrentFileInfo()
 
 
+# 析构函数
+def __del__():
+    release_redis_connection()
+
+
 # 创建redis的链接实例
 def initConnect(pool_connect):
     global pool  # 声明全局变量
