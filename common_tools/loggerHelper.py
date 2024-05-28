@@ -42,20 +42,23 @@ class Logger:
 
 
     # 日志调用入口
-    def info(self, message):
-        if self.log_day != datetime.datetime.now().strftime('%Y%m%d'):
-            self.resetSavePath(self)
+    @staticmethod
+    def info(message):
+        if Logger.log_day != datetime.datetime.now().strftime('%Y%m%d'):
+            Logger.resetSavePath(Logger)
 
         current_time = datetime.datetime.now()
         caller_frame = inspect.currentframe().f_back
         caller_info = inspect.getframeinfo(caller_frame)
+        basename = os.path.basename(caller_info.filename) #文件名称（不带路径）
+        baseKey = basename.split(".",1)[0]
 
         log_message = f"[{current_time}] {message}"
-        log_message += f" | path:{self.log_file_path} Called from {caller_info.filename}, {caller_info.function}(), Line {caller_info.lineno}"
+        log_message += f" | path:{Logger.log_file_path} Called from {caller_info.filename}, {caller_info.function}(), Line {caller_info.lineno}"
 
         print(f"写日志 message:{message}")
         log = logRunProcess()
-        log.addCache(context=log_message,key=Logger.save_path)
+        log.addCache(context=log_message,key=baseKey,filePath=Logger.save_path)
         #asyncio.run(self.process_info(log_message))
 
 
