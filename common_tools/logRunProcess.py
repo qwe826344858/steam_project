@@ -6,7 +6,7 @@ sys.path.append("/home/lighthouse/test_py")
 from common_tools.redisHelper import get_redis_connection, release_redis_connection, setRedisString, getRedisString, \
     setExpireTime
 
-
+############################# 废案 #############################
 # 日志守护进程
 class logRunProcess:
     # cache_pool = []
@@ -16,27 +16,50 @@ class logRunProcess:
     # pathMap = {}
 
     def __init__(self):
-        self.cache_pool = mp.Manager().dict()
+        self.queue = mp.Queue()
+        self.manager = mp.Manager()
+        self.cache_pool = self.manager.dict()
         self.cache_total_max = 20
         self.expire_time = 86400
         self.lock = threading.Lock()
-        self.pathMap = mp.Manager().dict()
+        self.pathMap = self.manager.dict()
+        self.testMap = {}
 
-    def addCache(self, context, key ,filePath):
+    # def addCache(self, context, key ,filePath):
+    #     if len(context) > 65535:
+    #         context = context[0:65534]
+    #
+    #     # key不存在时先初始化
+    #     if key not in self.cache_pool:
+    #         self.cache_pool[key] = {}
+    #
+    #     self.pathMap[key] = filePath
+    #
+    #     self.lock.acquire() # 获取互斥锁
+    #     id = self.idMaker(key)
+    #     if id is not None:
+    #         self.cache_pool[key][id] = context+"\n"
+    #     self.lock.release() # 释放锁
+    #     return
+
+    def addCache(self, context, key, filePath):
         if len(context) > 65535:
             context = context[0:65534]
 
-        # key不存在时先初始化
-        if key not in self.cache_pool:
-            self.cache_pool[key] = {}
+        with self.lock:
+            if key not in self.cache_pool:
+                self.cache_pool[key] = self.manager.list()
 
-        self.pathMap[key] = filePath
+            self.pathMap[key] = filePath
 
-        self.lock.acquire() # 获取互斥锁
-        id = self.idMaker(key)
-        if id is not None:
-            self.cache_pool[key][id] = context+"\n"
-        self.lock.release() # 释放锁
+            id = self.idMaker(key)
+            if id is not None:
+                self.cache_pool[key].append((id, context + "\n"))
+
+            self.testMap["path"] = self.pathMap
+            self.testMap["cache_pool"] = self.cache_pool
+            self.queue.put(self.testMap)
+
         return
 
     def idMaker(self, key):
@@ -75,6 +98,8 @@ class logRunProcess:
     def run(self):
         while 1:
             threads = []
+            self.testMap = self.queue.get()
+            print(f"testMap:{self.testMap}")
             if not self.cache_pool.items():
                 time.sleep(1)
                 continue
@@ -99,4 +124,6 @@ class logRunProcess:
 
 if __name__ == '__main__':
     p = logRunProcess()
-    p.run()
+    p1 = mp.Process(target=p.run())
+    p1.start()
+    p1.join()
