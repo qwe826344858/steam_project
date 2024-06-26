@@ -100,5 +100,5 @@ class Logger:
     def __del__(self):
         if len(self.cache_pool) != 0:
             print("__del__ 输出日志到文件中")
-            self.update2file()
+            self.updateLog2file()
             self.cache_pool.clear()

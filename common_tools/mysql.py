@@ -73,7 +73,7 @@ class DBHelper:
         try:
             cursor = self.connection.cursor()
             cursor.execute(query)
-            result = cursor.fetchall()
+            result = self._TranRawData2DictList(cursor)
             return True,result
 
         except mysql.connector.Error as error:
@@ -121,3 +121,16 @@ class DBHelper:
 
     def _getLastSQL(self):
         return ""
+
+
+    def _TranRawData2DictList(self,cursor):
+        column_names = [desc[0] for desc in cursor.description]
+        rawData = cursor.fetchall()
+        # 转换为键值对列表
+        result_dict_list = []
+        for row in rawData:
+            row_dict = {}
+            for i, column_name in enumerate(column_names):
+                row_dict[column_name] = row[i]
+            result_dict_list.append(row_dict)
+        return result_dict_list

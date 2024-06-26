@@ -76,7 +76,7 @@ def funcGetSteamInfo():
             break
         # print(element["results_html"])
 
-        json_data.append(html_to_json(data))
+        json_data += html_to_json(data)
 
     file = open("log.txt", "w",encoding='utf-8')
     file.write(json.dumps(json_data,ensure_ascii=False))
@@ -183,7 +183,7 @@ def html_to_json(element):
             'currency': sale_currency
         }
 
-    # print(json.dumps(getData))
+    print(json.dumps(getData))
     return getData
 
 

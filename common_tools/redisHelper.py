@@ -143,6 +143,24 @@ def setExpireTime(name, expire_time):
     print(f"{getCurrentMethodName()} name:{name} expire_time:{expire_time} ret:{ret}")
     return True
 
+
+# 整形自增
+def incrInt(name,amount=1):
+    ret = redis_connect.incr(name,amount)
+    if not ret:
+        return False
+
+    return True
+
+
+# 整形自减
+def decrInt(name, amount=1):
+    ret = redis_connect.decr(name, amount)
+    if not ret:
+        return False
+
+    return True
+
 # if __name__ == '__main__':
 #     # 使用连接池进行 Redis 操作
 #     redis_conn = get_redis_connection()
