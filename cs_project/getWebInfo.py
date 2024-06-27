@@ -44,7 +44,7 @@ def funcGetSteamInfo():
         return False
 
     index = 0
-    json_data = []
+    json_data = {}
     while True:
         url = f"https://steamcommunity.com/market/search/render/?query=&start={index}&count=100&search_descriptions=0&sort_column=popular&sort_dir=desc&appid=730"
         if index >= total_count:
@@ -76,10 +76,10 @@ def funcGetSteamInfo():
             break
         # print(element["results_html"])
 
-        json_data += html_to_json(data)
+        json_data.update(html_to_json(data))
 
     file = open("log.txt", "w",encoding='utf-8')
-    file.write(json.dumps(json_data,ensure_ascii=False))
+    file.write(json.dumps([json_data],ensure_ascii=False))
     file.close()
 
 

@@ -4,7 +4,10 @@ import mysql.connector
 import sys
 sys.path.append("/home/lighthouse/test_py/common_tools")
 from commonConfig import CommonConfig
+from common_tools.loggerHelper import Logger
 
+# 初始化日志
+Logger.init()
 # default
 # self.host = 'localhost'
 # self.username = 'root'
@@ -26,14 +29,14 @@ class DBHelper:
     instance = None     # 单例 防止重复创建
 
     def __new__(cls, host, username, password, database, table_name):
-        print("DBHelper 创建对象")
+        Logger.info("DBHelper 创建对象")
         # 检查实例是否已经存在，如果存在，则直接返回该实例
         if not DBHelper.instance:
             DBHelper.instance = super().__new__(cls)
         return DBHelper.instance
 
     def __init__(self, host, username, password, database,table_name):
-        print("DBHelper 初始化")
+        Logger.info("DBHelper 初始化")
         self.host = host
         self.username = username
         self.password = password
@@ -43,7 +46,7 @@ class DBHelper:
 
 
     def __del__(self):
-        print("DBHelper 析构")
+        Logger.info("DBHelper 析构")
         self.disconnect()
 
     def connect(self):
@@ -54,18 +57,18 @@ class DBHelper:
                 password=self.password,
                 database=self.database
             )
-            print("连接成功")
+            Logger.info("连接成功")
             return True
         except mysql.connector.Error as error:
-            print("连接数据库时出错: {}".format(error))
+            Logger.info("连接数据库时出错: {}".format(error))
             return False
 
     def disconnect(self):
         if self.connection.is_connected():
             self.connection.close()
-            print("断开连接")
+            Logger.info("断开连接")
         else:
-            print("无连接,无需释放连接")
+            Logger.info("无连接,无需释放连接")
 
         return True
 
@@ -77,7 +80,7 @@ class DBHelper:
             return True,result
 
         except mysql.connector.Error as error:
-            print("执行查询时出错: {}".format(error))
+            Logger.info("执行查询时出错: {}".format(error))
             return False,{}
 
     def execute_update(self, query):
@@ -85,11 +88,11 @@ class DBHelper:
             cursor = self.connection.cursor()
             cursor.execute(query)
             self.connection.commit()
-            print("更新成功")
+            Logger.info("更新成功")
             return True
 
         except mysql.connector.Error as error:
-            print("执行更新时出错: {}".format(error))
+            Logger.info("执行更新时出错: {}".format(error))
             self.connection.rollback()
             return False
 
@@ -98,11 +101,11 @@ class DBHelper:
             cursor = self.connection.cursor()
             cursor.execute(query)
             self.connection.commit()
-            print("删除成功")
+            Logger.info("删除成功")
             return True
 
         except mysql.connector.Error as error:
-            print("执行删除时出错: {}".format(error))
+            Logger.info("执行删除时出错: {}".format(error))
             self.connection.rollback()
             return False
 
@@ -111,11 +114,11 @@ class DBHelper:
             cursor = self.connection.cursor()
             cursor.execute(query)
             self.connection.commit()
-            print("插入成功")
+            Logger.info("插入成功")
             return True
 
         except mysql.connector.Error as error:
-            print("执行插入时出错: {}".format(error))
+            Logger.info("执行插入时出错: {}".format(error))
             self.connection.rollback()
             return False
 

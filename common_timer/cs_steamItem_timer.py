@@ -107,11 +107,12 @@ class CS_SteamItem_Timer:
         Logger.info(f"test run")
 
         for key,val in arr[0].items():
+            key = key.replace("'", "\\'")
             Logger.info(f"key:{key}")
             sql_str_select = f"SELECT * FROM {self.table_name} WHERE `fitem_source_name` = '{key}';"
             ret,data = self.dbHelper.execute_query(sql_str_select)
             if not ret:
-                Logger.info("CS_SteamItem_Timer 查询失败")
+                Logger.info(f"CS_SteamItem_Timer 查询失败 sql:{sql_str_select}")
                 return False
             Logger.info(f"data:{data}")
 
@@ -182,6 +183,7 @@ class CS_SteamItem_Timer:
         str = ""
         for k,v in t_dict.items():
             str += f" `{k}` = '{v}' ,"
+        Logger.info(str);
         return str[:len(str)-1]
 
     # 转义成sql表结构字段
@@ -200,5 +202,5 @@ class CS_SteamItem_Timer:
 if __name__ == '__main__':
     api = CS_SteamItem_Timer()
     #api.testlog()
-    fileName = "/home/lighthouse/test_py/cs_project/testLog.txt"
+    fileName = "/home/lighthouse/test_py/cs_project/log.txt"
     api.TranFileInfo2DB(fileName)
