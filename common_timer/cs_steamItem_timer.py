@@ -145,7 +145,41 @@ class CS_SteamItem_Timer:
                 if not ret:
                     continue
 
-        return
+        return True
+
+    # 记录下当日的商品详情信息
+    def everyDayItemInfoWriteDown(self):
+        self.table_name = "t_steam_item_single_day_info"
+        today = datetime.datetime.now().strftime('%Y%m%d')
+        lastID = 0
+        while 1:
+            ret,dataList = self.getIteamInfoByLastID(lastID,500)
+            if not ret:
+                Logger.info("everyDayItemInfoWriteDown 查询失败! 结束返回")
+                return False
+
+            if len(dataList) == 0:
+                break
+
+            lastID = dataList[-1].get('id')
+            Logger.info(f"lastID:{lastID}")
+
+
+            for data in dataList:
+                val = data.items()
+                addInfo = {
+                    'item_id':val.get('id',''),
+                    'calc_day':today,
+                    'sell_online_count':val.get('sell_online_count',''),
+                    'prices':val.get('prices',''),
+                    'currency':val.get('currency',''),
+                }
+                ret = self.addItemInfo(addInfo)
+                if not ret:
+                    continue
+
+        return True
+
 
     def addItemInfo(self,addInfo):
         addInfo['addtime'] = time.time()
@@ -169,6 +203,26 @@ class CS_SteamItem_Timer:
             Logger.info(f"CS_SteamItem_Timer 插入数据失败 lastSql:{sql_str_change}")
             return False
         return True
+
+
+
+    def getIteamInfoByLastID(self,lastID,pageSize):
+        Logger.info(f"lastID:{lastID}")
+        dataList = []
+        sql = f"select `fid`,`fsell_online_count`,`fprices`,`fcurrency` from {self.table_name} " \
+              f"where fid > {lastID} " \
+              f"order by `fid` ASC" \
+              f"limit {pageSize}"
+
+        ret,data = self.dbHelper.execute_update(sql)
+        if not ret:
+            Logger.info(f"getIteamInfoByLastID 查询失败 lastSql:{sql}")
+            return False,[]
+
+        for v in data:
+            dataList.append(self._TranMapBusinessKey(v))
+
+        return True,dataList
 
 
     # 创建sql需要拼接的字段
