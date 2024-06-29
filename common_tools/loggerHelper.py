@@ -55,8 +55,9 @@ class Logger:
         Logger.basename = os.path.basename(caller_info.filename) #文件名称（不带路径）
         Logger.current_file_path = os.path.dirname(os.path.abspath(__file__))
 
-        log_message = f"[{current_time}] {message}"
-        log_message += f" | path:{Logger.log_file_path} Called from {caller_info.filename}, {caller_info.function}(), Line {caller_info.lineno}"
+        log_message = f"[{current_time}] "
+        log_message += f"path:{Logger.log_file_path} Called from {caller_info.filename}, {caller_info.function}(), Line {caller_info.lineno}"
+        log_message += f" output ==> {message}"
 
         print(f"写日志 message:{message}")
         logger = Logger()

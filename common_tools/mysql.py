@@ -46,7 +46,6 @@ class DBHelper:
 
 
     def __del__(self):
-        Logger.info("DBHelper 析构")
         self.disconnect()
 
     def connect(self):
@@ -66,9 +65,6 @@ class DBHelper:
     def disconnect(self):
         if self.connection.is_connected():
             self.connection.close()
-            Logger.info("断开连接")
-        else:
-            Logger.info("无连接,无需释放连接")
 
         return True
 

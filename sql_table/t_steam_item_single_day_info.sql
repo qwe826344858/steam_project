@@ -11,8 +11,7 @@ CREATE TABLE `t_steam_item_single_day_info` (
   `fcurrency` varchar(8) NOT NULL DEFAULT '' COMMENT '当前货币',
   `faddtime` bigint(20) NOT NULL COMMENT '加入时间',
   PRIMARY KEY (`fid`),
-  KEY `idx_item_source_name` (`fitem_source_name`),
-  KEY `idx_item_cn_name` (`fitem_cn_name`),
+  KEY `idx_item_id_calc_day` (`fitem_id`,`fcalc_day`),
   KEY `idx_addtime` (`faddtime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='steam市场商品每日价格记录表'
 ;

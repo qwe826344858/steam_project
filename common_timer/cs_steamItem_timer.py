@@ -18,6 +18,13 @@ class CS_SteamItem_Timer:
     table_name = "t_steam_test"
     dbHelper = None
 
+
+    def __init__(self):
+        # 初始化DB
+        commonConfig = CommonConfig()
+        mysql_config = commonConfig.getMysqlConfig()
+        self.dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
+
     def test(self):
         table_name = "t_steam_item"
         commonConfig = CommonConfig()
@@ -74,7 +81,8 @@ class CS_SteamItem_Timer:
         Logger.info("只是测试日志哦!")
 
 
-    def TranFileInfo2DB(self,file_name):
+    def TranFileInfo2DB(self):
+        file_name = "/home/lighthouse/test_py/cs_project/log.txt"
         self.table_name = "t_steam_item"
         strJson = ""
         arr = {}
@@ -99,10 +107,6 @@ class CS_SteamItem_Timer:
 
             arr = json.loads(strJson)
 
-        # 初始化DB
-        commonConfig = CommonConfig()
-        mysql_config = commonConfig.getMysqlConfig()
-        self.dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
 
         Logger.info(f"test run")
 
@@ -126,7 +130,7 @@ class CS_SteamItem_Timer:
                     'prices':val.get('prices',''),
                     'currency':val.get('currency',''),
                 }
-                ret = self.addItemInfo(addInfo)        #插入
+                ret = self.addInfo(addInfo)        #插入
                 if not ret:
                     continue
             else:
@@ -141,7 +145,7 @@ class CS_SteamItem_Timer:
                     'prices':val.get('prices',''),
                     'currency':val.get('currency',''),
                 }
-                ret = self.updateItemInfo(filter,updateInfo)     #更新
+                ret = self.updateInfo(filter,updateInfo)     #更新
                 if not ret:
                     continue
 
@@ -155,7 +159,7 @@ class CS_SteamItem_Timer:
         while 1:
             ret,dataList = self.getIteamInfoByLastID(lastID,500)
             if not ret:
-                Logger.info("everyDayItemInfoWriteDown 查询失败! 结束返回")
+                Logger.info("getIteamInfoByLastID 查询失败! 结束返回")
                 return False
 
             if len(dataList) == 0:
@@ -165,23 +169,83 @@ class CS_SteamItem_Timer:
             Logger.info(f"lastID:{lastID}")
 
 
-            for data in dataList:
-                val = data.items()
-                addInfo = {
-                    'item_id':val.get('id',''),
-                    'calc_day':today,
-                    'sell_online_count':val.get('sell_online_count',''),
-                    'prices':val.get('prices',''),
-                    'currency':val.get('currency',''),
+            # 查询商品记录
+            for item_info in dataList:
+                val = item_info
+                itemId = val.get("id",'')
+
+                # 如果自增的唯一主键都取不出来值,是否是数据转义时生产的脏记录
+                # if itemId == '':
+                #     Logger.info(f"商品id为空! 跳过 name:{val.get('item_cn_name','')}")
+                #     continue
+
+                # 这里需要先查询今日是否有过添加记录,有则更新，没有则新增
+                item_filter = {
+                    "item_id":itemId,
+                    "calc_day":today,
                 }
-                ret = self.addItemInfo(addInfo)
+                ret,today_record = self.getSingleInfo(item_filter)
                 if not ret:
-                    continue
+                    Logger.info(f"getSingleInfo 查询失败! filter:{item_filter}")
+                    return False
+
+                addInfo = {
+                    'item_id': itemId,
+                    'calc_day': today,
+                    'sell_online_count': val.get('sell_online_count', ''),
+                    'prices': val.get('prices', ''),
+                    'currency': val.get('currency', ''),
+                }
+                if today_record == []:
+                    ret = self.addInfo(addInfo)
+                    if not ret:
+                        continue
+                else:
+                    item_day_id = today_record.get("id",'')
+                    day_filter = {'id':item_day_id}
+
+                    del addInfo['item_id']
+                    del addInfo['calc_day']
+                    ret = self.updateInfo(day_filter,addInfo)
+                    if not ret:
+                        continue
 
         return True
 
 
-    def addItemInfo(self,addInfo):
+
+    # 只找单条记录了 (common)
+    def getSingleInfo(self,filter,order = "fid ASC"):
+        ret,dataList = self.getInfo(filter=filter,page=1,pageSize=1,order=order)
+        if not ret:
+            return False,[]
+
+        if dataList == []:
+            return True,dataList
+
+        return ret,dataList[0]
+
+    # 找出所有的记录 (common)
+    def getInfo(self,filter,page = 1,pageSize = 50,order = "fid ASC"):
+        dataList = []
+        filter_str = self._TranMap2Filter(filter)
+        sql = f"SELECT * FROM {self.table_name} WHERE {filter_str} ORDER BY {order} LIMIT {(page-1)*pageSize},{pageSize};"
+        ret, data = self.dbHelper.execute_query(sql)
+        if not ret:
+            Logger.info(f"查询失败 table:{self.table_name} sql:{sql}")
+            return False,[]
+
+        if len(data) == 0:
+            return True,[]
+
+        for v in data:
+            dataList.append(self._TranMapBusinessKey(v))
+
+        return True,dataList
+
+
+    # 添加记录 (common)
+    def addInfo(self,addInfo):
         addInfo['addtime'] = time.time()
         addInfo = self._TranMapTaleKey(addInfo)
         field_str,value_str = self._TranMapKeyAndValues(addInfo)
@@ -193,7 +257,8 @@ class CS_SteamItem_Timer:
             return False
         return True
 
-    def updateItemInfo(self,filter,updateInfo):
+    # 更新记录 (common)
+    def updateInfo(self,filter,updateInfo):
         filter_str = self._TranMap2Update(self._TranMapTaleKey(filter))
         updateInfo_str = self._TranMap2Update(self._TranMapTaleKey(updateInfo))
 
@@ -202,6 +267,8 @@ class CS_SteamItem_Timer:
         if not ret:
             Logger.info(f"CS_SteamItem_Timer 插入数据失败 lastSql:{sql_str_change}")
             return False
+
+        Logger.info(f"更新记录成功! filter:{filter} updateInfo:{updateInfo}")
         return True
 
 
@@ -209,12 +276,12 @@ class CS_SteamItem_Timer:
     def getIteamInfoByLastID(self,lastID,pageSize):
         Logger.info(f"lastID:{lastID}")
         dataList = []
-        sql = f"select `fid`,`fsell_online_count`,`fprices`,`fcurrency` from {self.table_name} " \
+        sql = f"select `fid`,`fsell_online_count`,`fprices`,`fcurrency` from `t_steam_item`" \
               f"where fid > {lastID} " \
-              f"order by `fid` ASC" \
-              f"limit {pageSize}"
+              f"order by `fid` ASC " \
+              f"limit {pageSize};"
 
-        ret,data = self.dbHelper.execute_update(sql)
+        ret,data = self.dbHelper.execute_query(sql)
         if not ret:
             Logger.info(f"getIteamInfoByLastID 查询失败 lastSql:{sql}")
             return False,[]
@@ -237,8 +304,14 @@ class CS_SteamItem_Timer:
         str = ""
         for k,v in t_dict.items():
             str += f" `{k}` = '{v}' ,"
-        Logger.info(str);
         return str[:len(str)-1]
+
+    # 查询时where的条件拼接
+    def _TranMap2Filter(self, t_dict):
+        str = ""
+        for k, v in t_dict.items():
+            str += f" `f{k}` = '{v}' AND"
+        return str[:len(str) - 3]
 
     # 转义成sql表结构字段
     def _TranMapTaleKey(self,b_dict):
@@ -254,7 +327,17 @@ class CS_SteamItem_Timer:
 
 
 if __name__ == '__main__':
+    # 通过命令行输入方法名进行调用
+    method_name  = sys.argv[1]     # 获取命令中第一个额外参数
     api = CS_SteamItem_Timer()
-    #api.testlog()
-    fileName = "/home/lighthouse/test_py/cs_project/log.txt"
-    api.TranFileInfo2DB(fileName)
+
+    # 获取方法对象
+    method = getattr(api, method_name, None)
+
+    # 检查方法是否存在
+    if method is None or not callable(method):
+        print(f"方法 '{method_name}' 不存在或不可调用")
+        sys.exit(1)
+
+    # 调用方法
+    method()
