@@ -26,7 +26,7 @@ class CS_SteamItem_Timer:
         self.dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
 
     def test(self):
-        table_name = "t_steam_item"
+        self.table_name = "t_steam_item"
         commonConfig = CommonConfig()
         mysql_config = commonConfig.getMysqlConfig()
 
