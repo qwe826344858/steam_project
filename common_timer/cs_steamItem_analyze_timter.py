@@ -1,6 +1,9 @@
 import sys
+import datetime
 import pandas as pd
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 sys.path.append("/home/lighthouse/test_py")
 from common_tools.commonConfig import CommonConfig
@@ -25,22 +28,45 @@ class CS_SteamItem_Analyze_Timer:
 
     def runAnalyzeItemInfo(self):
         # 读取数据
-        data = pd.read_excel('/home/lighthouse/test_py/cs_project/商品统计数据.xlsx')
+        today = datetime.datetime.now().strftime('%Y%m%d')
+        next_day = datetime.datetime.now() + datetime.timedelta(days=1)
+        tomorrow = next_day.strftime('%Y%m%d')
+        data = pd.read_excel(fr'/home/lighthouse/test_py/ExcelFile/output_{today}.xlsx')
 
+        # 商品价格预测
         # 数据预处理
-        X = data[['日期', '在售的数量']]  # 特征
-        y = data['商品价格']  # 标签
+        data["日期"] = pd.to_datetime(data["日期"], format="%Y%m%d")
+        data["日期_num"] = (data["日期"] - data["日期"].min()).dt.days  # 将日期转换为数值型
 
-        # 创建线性回归模型
-        model = LinearRegression()
-        model.fit(X, y)
+        # 划分训练集和测试集
+        X_train, X_test, y_train_price, y_test_price, y_train_quantity, y_test_quantity = train_test_split(
+            data[["日期_num"]], data["商品价格"], data["在售的数量"], test_size=0.2, random_state=42)
 
-        # 预测新数据
-        new_data = pd.DataFrame({'日期': ['2023-06-01'], '在售的数量': [100]})
-        predicted_price = model.predict(new_data)
-        print(f"预测价格: {predicted_price[0]}")
+        # 价格预测模型
+        price_model = LinearRegression()
+        price_model.fit(X_train, y_train_price)
+        price_pred = price_model.predict(X_test)
+        price_mse = mean_squared_error(y_test_price, price_pred)
+        price_r2 = r2_score(y_test_price, price_pred)
+        print(f"Price Prediction: MSE = {price_mse:.2f}, R-squared = {price_r2:.2f}")
 
+        # 在售数量预测模型
+        quantity_model = LinearRegression()
+        quantity_model.fit(X_train, y_train_quantity)
+        quantity_pred = quantity_model.predict(X_test)
+        quantity_mse = mean_squared_error(y_test_quantity, quantity_pred)
+        quantity_r2 = r2_score(y_test_quantity, quantity_pred)
+        print(f"Quantity Prediction: MSE = {quantity_mse:.2f}, R-squared = {quantity_r2:.2f}")
 
+        # 预测未来数据
+        future_date = pd.to_datetime(f"{tomorrow}", format="%Y%m%d")
+        future_date_num = (future_date - data["日期"].min()).days
+        future_price = price_model.predict([[future_date_num]])
+        future_quantity = quantity_model.predict([[future_date_num]])
+
+        print(f"预测商品价格: {future_price[0]}")
+        print(f"预测在售数量: {future_quantity[0]}")
+        return
 
 if __name__ == '__main__':
     # 通过命令行输入方法名进行调用

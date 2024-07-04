@@ -6,7 +6,6 @@ import sys
 
 sys.path.append("/home/lighthouse/test_py")
 from common_tools.commonConfig import CommonConfig
-from common_tools.logRunProcess import logRunProcess
 
 # 搞定力
 class Logger:
@@ -59,7 +58,6 @@ class Logger:
         log_message += f"path:{Logger.log_file_path} Called from {caller_info.filename}, {caller_info.function}(), Line {caller_info.lineno}"
         log_message += f" output ==> {message}"
 
-        print(f"写日志 message:{message}")
         logger = Logger()
         logger.run(log_message=log_message)
         # asyncio.run(self.process_info(log_message))
@@ -73,9 +71,7 @@ class Logger:
 
     def addInfo(self, log_message):
         self.cache_pool.append(log_message)
-        print("addInfo")
         if len(self.cache_pool) > self.cache_pool_max_log:
-            print("输出日志到文件中")
             self.updateLog2file()
             self.cache_pool.clear()
 
@@ -84,12 +80,10 @@ class Logger:
     def updateLog2file(self):
         dirPath = f"{Logger.log_config['save_path']}/{Logger.log_day}"
         if not os.path.exists(dirPath):
-            print(f"目录不存在 path:{dirPath}")
             os.makedirs(dirPath)
 
         # 检查文件是否存在
         if not os.path.exists(self.save_path):
-            print(f"文件不存在 file:{self.save_path}")
             # 创建文件
             open(self.save_path, "a").close()
 
@@ -100,6 +94,5 @@ class Logger:
 
     def __del__(self):
         if len(self.cache_pool) != 0:
-            print("__del__ 输出日志到文件中")
             self.updateLog2file()
             self.cache_pool.clear()

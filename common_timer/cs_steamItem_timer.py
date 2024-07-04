@@ -3,6 +3,7 @@ import sys
 import datetime
 import os
 import time
+import openpyxl
 
 sys.path.append("/home/lighthouse/test_py")
 from common_tools.commonConfig import CommonConfig
@@ -17,6 +18,7 @@ class CS_SteamItem_Timer:
     database = "Steam_Project"
     table_name = "t_steam_test"
     dbHelper = None
+    workbook = None
 
 
     def __init__(self):
@@ -80,33 +82,39 @@ class CS_SteamItem_Timer:
     def testlog(self):
         Logger.info("只是测试日志哦!")
 
-
-    def TranFileInfo2DB(self):
-        file_name = "/home/lighthouse/test_py/cs_project/log.txt"
-        self.table_name = "t_steam_item"
-        strJson = ""
-        arr = {}
+    # 读取文件解析json
+    def readJsonFile(self,file_name):
         # 先读文件
         now = datetime.datetime.now().strftime('%Y%m%d %H:%I:%S')
         Logger.info(f"go open the files! currentTime:{now}")
         # 检查文件是否存在
         if not os.path.exists(file_name):
             Logger(f"文件不存在 file:{file_name}")
-            return False
+            return False,None
 
         with open(file_name, "r") as file:
             # 校验文件是否可读
             if not file.readable():
                 Logger.info(f"文件不可读,读取失败! file:{file_name}")
-                return False
+                return False,None
 
             strJson = file.read()
             if len(strJson) < 1:
                 Logger.info(f"空文件! file:{file_name}")
-                return True
+                return False,None
 
             arr = json.loads(strJson)
 
+        return True,arr
+
+
+    # 将文件中的信息转换后写入DB
+    def TranFileInfo2DB(self):
+        file_name = "/home/lighthouse/test_py/cs_project/log.txt"
+        self.table_name = "t_steam_item"
+        ret,arr = self.readJsonFile(file_name)
+        if not ret or arr is None:
+            return False
 
         Logger.info(f"test run")
 
@@ -213,6 +221,47 @@ class CS_SteamItem_Timer:
         return True
 
 
+    # 将文件中的信息转换后写入excel
+    def TranItemInfo2Excel(self):
+        file_name = "/home/lighthouse/test_py/cs_project/log.txt"
+        today = datetime.datetime.now().strftime('%Y%m%d')
+        self.table_name = "t_steam_item_single_day_info"
+
+
+        # ret,arr = self.readJsonFile(file_name)
+        # if not ret or arr is None:
+        #     return False
+
+        while 1:
+            ret,dataList = self.getIteamInfoByLastID(lastID,500)
+            if not ret:
+                Logger.info("getIteamInfoByLastID 查询失败! 结束返回")
+                return False
+
+            if len(dataList) == 0:
+                break
+
+            filter = []
+            filter['id'] = self.array_column(dataList,'id')
+            ret,everyDayDataList = self.getInfo(filter=filter,page=1,pageSize=5000)
+            if not ret:
+                Logger.info("getInfo 查询失败! 结束返回")
+                return False
+
+            for dayData in everyDayDataList:
+                val = dayData.items()
+                self._TransExcelFile(val,val.get("id"),today)
+
+            lastID = dataList[-1].get('id')
+            Logger.info(f"lastID:{lastID}")
+
+        return True
+
+
+
+
+# 下面是非入口方法
+    # ----------------------------------------------------------------------------------------
 
     # 只找单条记录了 (common)
     def getSingleInfo(self,filter,order = "fid ASC"):
@@ -310,7 +359,11 @@ class CS_SteamItem_Timer:
     def _TranMap2Filter(self, t_dict):
         str = ""
         for k, v in t_dict.items():
-            str += f" `f{k}` = '{v}' AND"
+            if isinstance(v,list):
+                extStr = "', '".join(v)
+                str += f" `f{k}` IN ('{extStr}') AND"
+            else:
+                str += f" `f{k}` = '{v}' AND"
         return str[:len(str) - 3]
 
     # 转义成sql表结构字段
@@ -324,6 +377,33 @@ class CS_SteamItem_Timer:
         b_dict = {k[1:]: v for k, v in t_dict.items()}
         return b_dict
 
+
+    def _TransExcelFile(self,arr,item_id,day):
+        # 创建一个新的Excel工作簿
+        self.workbook = openpyxl.Workbook()
+
+        # 获取活动的工作表
+        sheet = self.workbook.active
+        index = 1
+
+        # 写入数据到单元格
+        sheet[f"A{index}"] ="日期"
+        sheet[f"B{index}"] ="商品价格"
+        sheet[f"C{index}"] ="在售的数量"
+
+
+        for _,val in arr:
+            index += 1
+            sheet[f"A{index}"] = day
+            sheet[f"B{index}"] = val.get("prices",0)
+            sheet[f"C{index}"] = val.get("sell_online_count",0)
+
+        # 保存Excel文件
+        self.workbook.save(fr"/home/lighthouse/test_py/ExcelFile/output_{item_id}_{day}.xlsx")
+
+
+def array_column(arr, col):
+    return [item[col] for item in arr]
 
 
 if __name__ == '__main__':
