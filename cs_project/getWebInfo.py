@@ -55,13 +55,19 @@ def funcGetSteamInfo():
             time.sleep(random.uniform(1.1, 5.5))
 
         req = {}
-        response = requests.post(url, req, headers=_getHeaders(), proxies=proxies)
-        if response.status_code != 200:
-            print(f"请求被拦截了,延迟{retry_sleep_time}秒再重试下 index:{index}")
-            time.sleep(retry_sleep_time)
-            if retry_count > 5:
-                print(f"重试次数超过5次,关闭程序 count:{retry_count}")
-                break
+        try:
+            response = requests.post(url, req, headers=_getHeaders(), proxies=proxies)
+            if response.status_code != 200:
+                print(f"请求被拦截了,延迟{retry_sleep_time}秒再重试下 index:{index}")
+                time.sleep(retry_sleep_time)
+                if retry_count > 5:
+                    print(f"重试次数超过5次,关闭程序 count:{retry_count}")
+                    break
+                index -= 100
+                retry_count += 1
+                continue
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
             index -= 100
             retry_count += 1
             continue

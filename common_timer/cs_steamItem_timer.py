@@ -223,15 +223,10 @@ class CS_SteamItem_Timer:
 
     # 将文件中的信息转换后写入excel
     def TranItemInfo2Excel(self):
-        file_name = "/home/lighthouse/test_py/cs_project/log.txt"
         today = datetime.datetime.now().strftime('%Y%m%d')
         self.table_name = "t_steam_item_single_day_info"
 
-
-        # ret,arr = self.readJsonFile(file_name)
-        # if not ret or arr is None:
-        #     return False
-
+        lastID = 0
         while 1:
             ret,dataList = self.getIteamInfoByLastID(lastID,500)
             if not ret:
@@ -241,16 +236,17 @@ class CS_SteamItem_Timer:
             if len(dataList) == 0:
                 break
 
-            filter = []
-            filter['id'] = self.array_column(dataList,'id')
-            ret,everyDayDataList = self.getInfo(filter=filter,page=1,pageSize=5000)
-            if not ret:
-                Logger.info("getInfo 查询失败! 结束返回")
-                return False
+            for id in self.array_column(dataList,'id'):
+                filter = {}
+                filter['id'] = id
+                ret,everyDayDataList = self.getInfo(filter=filter,page=1,pageSize=5000)
+                if not ret:
+                    Logger.info("getInfo 查询失败! 结束返回")
+                    return False
 
-            for dayData in everyDayDataList:
-                val = dayData.items()
-                self._TransExcelFile(val,val.get("id"),today)
+                Logger.info(f"everyDayDataList:{everyDayDataList}")
+                val = everyDayDataList
+                self._TransAnalyzeExcelFile(val,val.get("id"),today)
 
             lastID = dataList[-1].get('id')
             Logger.info(f"lastID:{lastID}")
@@ -360,7 +356,7 @@ class CS_SteamItem_Timer:
         str = ""
         for k, v in t_dict.items():
             if isinstance(v,list):
-                extStr = "', '".join(v)
+                extStr = "', '".join([format(single) for single in v])
                 str += f" `f{k}` IN ('{extStr}') AND"
             else:
                 str += f" `f{k}` = '{v}' AND"
@@ -378,7 +374,7 @@ class CS_SteamItem_Timer:
         return b_dict
 
 
-    def _TransExcelFile(self,arr,item_id,day):
+    def _TransAnalyzeExcelFile(self,arr,item_id,day):
         # 创建一个新的Excel工作簿
         self.workbook = openpyxl.Workbook()
 
@@ -394,16 +390,20 @@ class CS_SteamItem_Timer:
 
         for _,val in arr:
             index += 1
+            Logger.info(f"val:{val}")
             sheet[f"A{index}"] = day
-            sheet[f"B{index}"] = val.get("prices",0)
-            sheet[f"C{index}"] = val.get("sell_online_count",0)
+            sheet[f"B{index}"] = val.get("prices","0")
+            sheet[f"C{index}"] = val.get("sell_online_count","0")
 
         # 保存Excel文件
         self.workbook.save(fr"/home/lighthouse/test_py/ExcelFile/output_{item_id}_{day}.xlsx")
 
 
-def array_column(arr, col):
-    return [item[col] for item in arr]
+    def array_column(self,arr, col):
+        retList = []
+        for item in arr:
+            retList.append(item.get(col))
+        return retList
 
 
 if __name__ == '__main__':
