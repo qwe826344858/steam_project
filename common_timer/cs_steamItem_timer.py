@@ -238,7 +238,7 @@ class CS_SteamItem_Timer:
 
             for id in self.array_column(dataList,'id'):
                 filter = {}
-                filter['id'] = id
+                filter['item_id'] = id
                 ret,everyDayDataList = self.getInfo(filter=filter,page=1,pageSize=5000)
                 if not ret:
                     Logger.info("getInfo 查询失败! 结束返回")
@@ -246,7 +246,7 @@ class CS_SteamItem_Timer:
 
                 Logger.info(f"everyDayDataList:{everyDayDataList}")
                 val = everyDayDataList
-                self._TransAnalyzeExcelFile(val,val.get("id"),today)
+                self._TransAnalyzeExcelFile(val,id,today)
 
             lastID = dataList[-1].get('id')
             Logger.info(f"lastID:{lastID}")
@@ -388,7 +388,7 @@ class CS_SteamItem_Timer:
         sheet[f"C{index}"] ="在售的数量"
 
 
-        for _,val in arr:
+        for val in arr:
             index += 1
             Logger.info(f"val:{val}")
             sheet[f"A{index}"] = day
@@ -396,7 +396,7 @@ class CS_SteamItem_Timer:
             sheet[f"C{index}"] = val.get("sell_online_count","0")
 
         # 保存Excel文件
-        self.workbook.save(fr"/home/lighthouse/test_py/ExcelFile/output_{item_id}_{day}.xlsx")
+        self.workbook.save(fr"/home/lighthouse/test_py/ExcelFile/output_{item_id}.xlsx")
 
 
     def array_column(self,arr, col):

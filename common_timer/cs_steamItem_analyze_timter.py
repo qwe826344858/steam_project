@@ -26,12 +26,24 @@ class CS_SteamItem_Analyze_Timer:
         self.dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
 
 
-    def runAnalyzeItemInfo(self):
+    def runAnalyze(self):
+        if len(sys.argv) > 2:
+            fileName = fr'/home/lighthouse/test_py/ExcelFile/output_{int(sys.argv[2])}.xlsx'
+            ret = self.runAnalyzeItemInfo(fileName)
+            if not ret:
+                print("读取文件启动预测失败!")
+                return False
+        else:
+            print(f"type:{sys.argv[2]}")
+        return
+
+    # 分析文件
+    def runAnalyzeItemInfo(self,fileName):
         # 读取数据
         today = datetime.datetime.now().strftime('%Y%m%d')
         next_day = datetime.datetime.now() + datetime.timedelta(days=1)
         tomorrow = next_day.strftime('%Y%m%d')
-        data = pd.read_excel(fr'/home/lighthouse/test_py/ExcelFile/output_{today}.xlsx')
+        data = pd.read_excel(fileName)
 
         # 商品价格预测
         # 数据预处理
@@ -66,11 +78,12 @@ class CS_SteamItem_Analyze_Timer:
 
         print(f"预测商品价格: {future_price[0]}")
         print(f"预测在售数量: {future_quantity[0]}")
-        return
+
+        return True
 
 if __name__ == '__main__':
     # 通过命令行输入方法名进行调用
-    method_name  = sys.argv[1]     # 获取命令中第一个额外参数
+    method_name = sys.argv[1]     # 获取命令中第一个额外参数
     api = CS_SteamItem_Analyze_Timer()
 
     # 获取方法对象
