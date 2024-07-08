@@ -246,7 +246,7 @@ class CS_SteamItem_Timer:
 
                 Logger.info(f"everyDayDataList:{everyDayDataList}")
                 val = everyDayDataList
-                self._TransAnalyzeExcelFile(val,id,today)
+                self._TransAnalyzeExcelFile(val,id)
 
             lastID = dataList[-1].get('id')
             Logger.info(f"lastID:{lastID}")
@@ -374,7 +374,7 @@ class CS_SteamItem_Timer:
         return b_dict
 
 
-    def _TransAnalyzeExcelFile(self,arr,item_id,day):
+    def _TransAnalyzeExcelFile(self,arr,item_id):
         # 创建一个新的Excel工作簿
         self.workbook = openpyxl.Workbook()
 
