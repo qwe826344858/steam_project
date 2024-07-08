@@ -224,6 +224,7 @@ class CS_SteamItem_Timer:
     # 将文件中的信息转换后写入excel
     def TranItemInfo2Excel(self):
         today = datetime.datetime.now().strftime('%Y%m%d')
+        Logger.info(f"TranItemInfo2Excel go run! today:{today}")
         self.table_name = "t_steam_item_single_day_info"
 
         lastID = 0
