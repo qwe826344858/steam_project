@@ -26,7 +26,10 @@ class CommonConfig:
     @staticmethod
     def getLogConfig():
         config = {
-            'save_path': CommonConfig._getLogSavePath()
+            'save_path': CommonConfig._getLogSavePath(),
+            'distributed': True,
+            'retry_max': 5,          # 重试的最大次数(单台服务器)
+            'retry_time_out': 60,   # 重试后最大超时的时间(分布式)
         }
 
         return config

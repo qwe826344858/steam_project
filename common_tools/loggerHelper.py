@@ -3,8 +3,10 @@ import inspect
 import os
 import multiprocessing as mp
 import sys
+import time
 
 sys.path.append("/home/lighthouse/test_py")
+from common_tools.redisHelper import get_redis_connection, release_redis_connection, getRedisString, setExpireTime
 from common_tools.commonConfig import CommonConfig
 
 # 搞定力
@@ -87,10 +89,56 @@ class Logger:
             # 创建文件
             open(self.save_path, "a").close()
 
-        with open(self.save_path, "a") as file:
-            for log in self.cache_pool:
-                file.write(log + "\n")
+        self.writeFile()
         return
+
+
+    def writeFile(self):
+        if self.log_config['distributed']:
+            self.writeFileByDistributed()
+        else:
+            self.writeFileBySingleService()
+        return
+
+
+    def writeFileByDistributed(self):
+        redis_conn = get_redis_connection()
+        start_time = time.time()
+        retry_count = 0
+        logMessage = "\n".join(self.cache_pool)
+        while 1:
+            _,str = getRedisString()    # TODO
+
+            try:
+                with open(self.save_path, "a") as file:
+                    file.write(logMessage)
+                    break
+            except IOError as e:
+                print(f"writeFileByDistributed retry_count:{retry_count} err:{e}")
+                retry_count += 1
+
+            if time.time() - start_time > 60:
+                print(print(f"time out!  give up this log:{logMessage}"))
+                break
+
+            time.sleep(1)       # 1s后再试
+
+        release_redis_connection(redis_conn)
+
+    def writeFileBySingleService(self):
+        retry_count = 0
+        logMessage = "\n".join(self.cache_pool)
+        while 1:
+            try:
+                with open(self.save_path, "a") as file:
+                    file.write(logMessage)
+                    break
+            except IOError as e:
+                print(f"writeFileBySingleService retry_count:{retry_count} err:{e}")
+                if retry_count >= self.log_config["retry_max"]:
+                    break
+                retry_count += 1
+                time.sleep(1)   # 1s后再试
 
     def __del__(self):
         if len(self.cache_pool) != 0:
