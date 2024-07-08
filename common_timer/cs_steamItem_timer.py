@@ -391,7 +391,7 @@ class CS_SteamItem_Timer:
         for val in arr:
             index += 1
             Logger.info(f"val:{val}")
-            sheet[f"A{index}"] = day
+            sheet[f"A{index}"] = val.get("calc_day")
             sheet[f"B{index}"] = val.get("prices","0")
             sheet[f"C{index}"] = val.get("sell_online_count","0")
 
