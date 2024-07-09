@@ -6,7 +6,7 @@ import sys
 import time
 
 sys.path.append("/home/lighthouse/test_py")
-from common_tools.redisHelper import get_redis_connection, release_redis_connection, getRedisString, setExpireTime
+from common_tools.redisHelper import get_redis_connection, release_redis_connection, getRedisString, setRedisString,delRedisString
 from common_tools.commonConfig import CommonConfig
 
 # 搞定力
@@ -106,20 +106,36 @@ class Logger:
         start_time = time.time()
         retry_count = 0
         logMessage = "\n".join(self.cache_pool)
+        delRDSState = False
         while 1:
-            _,str = getRedisString()    # TODO
+
+            if time.time() - start_time > 60:
+                print(f"time out!  give up this log:{logMessage}")
+                break
+
+            ret,str = getRedisString(self.basename)    # TODO
+            if not ret:
+                print(f"call redis is failed! key:{self.basename}")
+                break
+
+            if str != "":
+                time.sleep(1)  # 1s后再试
+                continue
+            else:
+                setRedisString(self.basename,"1",60)
+                delRDSState = True
+
 
             try:
                 with open(self.save_path, "a") as file:
                     file.write(logMessage)
+                    if delRDSState:
+                        delRedisString(self.basename)
                     break
             except IOError as e:
                 print(f"writeFileByDistributed retry_count:{retry_count} err:{e}")
                 retry_count += 1
 
-            if time.time() - start_time > 60:
-                print(print(f"time out!  give up this log:{logMessage}"))
-                break
 
             time.sleep(1)       # 1s后再试
 
