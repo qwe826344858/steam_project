@@ -84,7 +84,7 @@ def funcGetSteamInfo():
 
         json_data.update(html_to_json(data))
 
-    file = open("log.txt", "w",encoding='utf-8')
+    file = open("/home/lighthouse/test_py/cs_project/log.txt", "w",encoding='utf-8')
     file.write(json.dumps([json_data],ensure_ascii=False))
     file.close()
 
