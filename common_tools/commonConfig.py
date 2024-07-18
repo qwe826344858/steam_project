@@ -33,3 +33,21 @@ class CommonConfig:
         }
 
         return config
+
+
+    # 告警人列表
+    alarm_list = {"zoneslee":"1786756952@qq.com"}
+
+    # 配置
+    sender_email_config = {
+        "qwe826344858@gmail.com": "ilwe kyzi tapq ylne"     # 邮箱+应用密码
+    }
+
+    recipient_mail_list = ['1786756952@qq.com','MicAccLee@outlook.com']
+
+    # 邮件配置
+    def getMailConfig(self):
+        return {
+            'sender_email_config': self.sender_email_config,
+            'recipient_mail_list': self.recipient_mail_list
+        }
