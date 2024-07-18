@@ -7,7 +7,7 @@ def test():
         'accept': 'application/json, text/plain, */*',
         'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
         'apptype': '1',
-        'authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJjODA1ODllNjlhZWU0NGQ3YWU0YTE2YzBmZGI1MWI2NCIsIm5hbWVpZCI6IjY3OTg2MTIiLCJJZCI6IjY3OTg2MTIiLCJ1bmlxdWVfbmFtZSI6IllQMDAwNjc5ODYxMiIsIk5hbWUiOiJZUDAwMDY3OTg2MTIiLCJ2ZXJzaW9uIjoiNTJJIiwibmJmIjoxNzE5MjAzNjQ0LCJleHAiOjE3MjAwNjc2NDQsImlzcyI6InlvdXBpbjg5OC5jb20iLCJhdWQiOiJ1c2VyIn0.lBeT62nG2_N_H9pd05cGZYwecnjRHmk8Ce6P5KreN7E',
+        'authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJmOWYwYzFjYTIzMWI0YTI2OGVjMDNlNTUwN2RjNjA0YiIsIm5hbWVpZCI6IjY3OTg2MTIiLCJJZCI6IjY3OTg2MTIiLCJ1bmlxdWVfbmFtZSI6IllQMDAwNjc5ODYxMiIsIk5hbWUiOiJZUDAwMDY3OTg2MTIiLCJ2ZXJzaW9uIjoiaGNtIiwibmJmIjoxNzIxMDQwMTE0LCJleHAiOjE3MjE5MDQxMTQsImlzcyI6InlvdXBpbjg5OC5jb20iLCJhdWQiOiJ1c2VyIn0.ZuXSA3F7O8kNUj51CLnwi7GAMSYMcj5MP3zc4E8eY4I',
         'cache-control': 'no-cache',
         # Already added when you pass json=
         # 'content-type': 'application/json',
