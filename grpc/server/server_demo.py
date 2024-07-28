@@ -1,0 +1,31 @@
+from concurrent import futures
+import grpc
+import sys
+
+sys.path.append("/home/lighthouse/test_py")
+
+from pb import hello_pb2_grpc,hello_pb2
+
+req = hello_pb2.req
+resp = hello_pb2.resp
+server = hello_pb2_grpc.HelloServiceServicer
+_rpc = hello_pb2_grpc
+
+class DemonServer(server):
+    def sayHello(self, request, context):
+        name = request.name
+        return resp(msg=f"hello {name}")
+
+
+
+def StartService():
+    port = "40000"
+    gs = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    hello_pb2_grpc.add_HelloServiceServicer_to_server(server(), gs)
+    gs.add_insecure_port('[::]:' + port)
+    gs.start()
+    print("Server started, listening on " + port)
+    gs.wait_for_termination()
+
+if __name__ == '__main__':
+    StartService()
