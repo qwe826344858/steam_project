@@ -13,15 +13,16 @@ _rpc = hello_pb2_grpc
 
 class DemonServer(server):
     def sayHello(self, request, context):
-        name = request.name
-        return resp(msg=f"hello {name}")
+        user = request.user
+        print(f"user:{user} has call this")
+        return resp(msg=f"hello {user}")
 
 
 
 def StartService():
     port = "40000"
     gs = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    hello_pb2_grpc.add_HelloServiceServicer_to_server(server(), gs)
+    hello_pb2_grpc.add_HelloServiceServicer_to_server(DemonServer(), gs)
     gs.add_insecure_port('[::]:' + port)
     gs.start()
     print("Server started, listening on " + port)
