@@ -12,7 +12,7 @@ server = hello_pb2_grpc.HelloServiceServicer
 _rpc = hello_pb2_grpc
 
 class DemonServer(server):
-    def sayHello(self, request, context):
+    def SayHello(self, request, context):
         user = request.user
         print(f"user:{user} has call this")
         return resp(msg=f"hello {user}")

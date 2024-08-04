@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 service HelloService{
- rpc sayHello(req) returns (resp) {}
+ rpc SayHello(req) returns (resp) {}
 }
 
 

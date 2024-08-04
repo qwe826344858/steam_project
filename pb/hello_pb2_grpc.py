@@ -41,8 +41,8 @@ class HelloServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.sayHello = channel.unary_unary(
-                '/HelloService/sayHello',
+        self.SayHello = channel.unary_unary(
+                '/HelloService/SayHello',
                 request_serializer=hello__pb2.req.SerializeToString,
                 response_deserializer=hello__pb2.resp.FromString,
                 _registered_method=True)
@@ -51,7 +51,7 @@ class HelloServiceStub(object):
 class HelloServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def sayHello(self, request, context):
+    def SayHello(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -60,8 +60,8 @@ class HelloServiceServicer(object):
 
 def add_HelloServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'sayHello': grpc.unary_unary_rpc_method_handler(
-                    servicer.sayHello,
+            'SayHello': grpc.unary_unary_rpc_method_handler(
+                    servicer.SayHello,
                     request_deserializer=hello__pb2.req.FromString,
                     response_serializer=hello__pb2.resp.SerializeToString,
             ),
@@ -77,7 +77,7 @@ class HelloService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def sayHello(request,
+    def SayHello(request,
             target,
             options=(),
             channel_credentials=None,
@@ -90,7 +90,7 @@ class HelloService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/HelloService/sayHello',
+            '/HelloService/SayHello',
             hello__pb2.req.SerializeToString,
             hello__pb2.resp.FromString,
             options,
