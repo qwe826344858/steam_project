@@ -41,8 +41,8 @@ class HelloServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.sayHello = channel.unary_unary(
-                '/HelloService/sayHello',
+        self.SayHello = channel.unary_unary(
+                '/grpc_demo.HelloService/SayHello',
                 request_serializer=hello__pb2.req.SerializeToString,
                 response_deserializer=hello__pb2.resp.FromString,
                 _registered_method=True)
@@ -51,7 +51,7 @@ class HelloServiceStub(object):
 class HelloServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def sayHello(self, request, context):
+    def SayHello(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -60,16 +60,16 @@ class HelloServiceServicer(object):
 
 def add_HelloServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'sayHello': grpc.unary_unary_rpc_method_handler(
-                    servicer.sayHello,
+            'SayHello': grpc.unary_unary_rpc_method_handler(
+                    servicer.SayHello,
                     request_deserializer=hello__pb2.req.FromString,
                     response_serializer=hello__pb2.resp.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'HelloService', rpc_method_handlers)
+            'grpc_demo.HelloService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('HelloService', rpc_method_handlers)
+    server.add_registered_method_handlers('grpc_demo.HelloService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -77,7 +77,7 @@ class HelloService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def sayHello(request,
+    def SayHello(request,
             target,
             options=(),
             channel_credentials=None,
@@ -90,7 +90,7 @@ class HelloService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/HelloService/sayHello',
+            '/grpc_demo.HelloService/SayHello',
             hello__pb2.req.SerializeToString,
             hello__pb2.resp.FromString,
             options,

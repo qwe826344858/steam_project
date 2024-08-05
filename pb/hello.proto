@@ -1,7 +1,11 @@
 syntax = "proto3";
 
+package grpc_demo;
+
+option go_package = "grpc_demo/";
+
 service HelloService{
- rpc sayHello(req) returns (resp) {}
+ rpc SayHello(req) returns (resp) {}
 }
 
 
