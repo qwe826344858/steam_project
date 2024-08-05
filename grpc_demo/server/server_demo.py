@@ -4,7 +4,7 @@ import sys
 
 sys.path.append("/home/lighthouse/test_py")
 
-from pb import hello_pb2_grpc,hello_pb2
+from grpc_demo.pb import hello_pb2_grpc,hello_pb2
 
 req = hello_pb2.req
 resp = hello_pb2.resp
