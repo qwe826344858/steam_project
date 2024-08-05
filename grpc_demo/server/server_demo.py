@@ -1,8 +1,6 @@
 from concurrent import futures
 import grpc
-import sys
 
-sys.path.append("/home/lighthouse/test_py")
 
 from grpc_demo.pb import hello_pb2_grpc,hello_pb2
 
