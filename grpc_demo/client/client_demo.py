@@ -1,9 +1,6 @@
 import grpc
-import sys
 
-sys.path.append("/home/lighthouse/test_py")
-
-from pb import hello_pb2_grpc,hello_pb2
+from grpc_demo.pb import hello_pb2_grpc,hello_pb2
 
 req = hello_pb2.req
 stub = hello_pb2_grpc.HelloServiceStub
@@ -15,7 +12,7 @@ def RunClient():
             s = hello_pb2_grpc.HelloServiceStub(channel)
             param = hello_pb2.req(user="zoneslee")
             try:
-                resp = s.sayHello(param)
+                resp = s.SayHello(param)
                 print(resp.msg)    # 内容与proto中定义 resp 一致
             except grpc.RpcError as e:
                 print(f"gRPC call failed with error: {e.code()}: {e.details()}")
