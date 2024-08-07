@@ -1,3 +1,4 @@
+import datetime
 import json
 import random
 import time
@@ -37,6 +38,9 @@ def funcStart():
 
 
 def funcGetSteamInfo():
+    today = datetime.datetime.now().strftime('%Y%m%d')
+    print(f"{today} 开始执行!")
+
     total_count = 0  # 总和计数
     retry_count = 0  # 重试次数
     ret, total_count = _getCSItemTotal()
@@ -52,7 +56,7 @@ def funcGetSteamInfo():
         else:
             index += 100
             print(f"index:{index}")
-            time.sleep(random.uniform(1.1, 5.5))
+            time.sleep(random.uniform(0.1, 0.5))
 
         req = {}
         try:
@@ -60,7 +64,7 @@ def funcGetSteamInfo():
             if response.status_code != 200:
                 print(f"请求被拦截了,延迟{retry_sleep_time}秒再重试下 index:{index}")
                 time.sleep(retry_sleep_time)
-                if retry_count > 5:
+                if retry_count > 10:
                     print(f"重试次数超过5次,关闭程序 count:{retry_count}")
                     break
                 index -= 100
@@ -70,6 +74,7 @@ def funcGetSteamInfo():
             print(f"An error occurred: {e}")
             index -= 100
             retry_count += 1
+            time.sleep(30)
             continue
         else :
             if retry_count > 0:
