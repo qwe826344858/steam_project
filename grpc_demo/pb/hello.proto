@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package grpc_demo;
+
+option go_package = "grpc_demo/";
+
+service HelloService{
+ rpc SayHello(req) returns (resp) {}
+}
+
+
+message req {
+ string user = 1;
+}
+
+
+message resp {
+ string msg = 1;
+}
