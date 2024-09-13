@@ -13,8 +13,8 @@ class GrpcSavingDaemon():
 
     def __init__(self):
         config = CommonConfig.getGrpcConfig()
-        grpc_host = config["host"]
-        grpc_port = config["port"]
+        self.grpc_host = config["host"]
+        self.grpc_port = config["port"]
 
     def run(self):
         while True:
