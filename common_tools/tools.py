@@ -79,6 +79,13 @@ def runDaemon(api):
     method()
 
 
+def array_column(self,arr, col):
+    retList = []
+    for item in arr:
+        retList.append(item.get(col))
+    return retList
+
+
 # cUrl(bash) 转 对应语言的代码
 if __name__ == '__main__':
     str = "curl 'https://buff.163.com/api/market/sell_order/top_bookmarked?game=csgo&page_num=1&category_group=knife&tab=top-bookmarked&_=1710750906681' \
