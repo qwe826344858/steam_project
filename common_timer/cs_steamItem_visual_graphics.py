@@ -4,14 +4,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-from common_tools.tools import runDaemon, array_column
+from common_tools.tools import runDaemon
 from common_tools.loggerHelper import Logger
 from DAO import cs_item_dao
 
 # 初始化日志
 Logger.init()
 
-
+mapInfo = []    # 商品信息,全局变量
 class VisualGraphics:
     dao = None
 
@@ -23,6 +23,7 @@ class VisualGraphics:
         Logger.info("新增测试")
 
     def GetVisualGraphics(self):
+        global mapInfo
         ret,idList,mapInfo = self.getItemIdList()
         if not ret :
             Logger.info("获取商品信息失败!")
@@ -45,6 +46,9 @@ class VisualGraphics:
 
 
     def transItemInfo2Pic(self,param):
+        # 使用日价表
+        m = {}
+        self.dao.SetTable(self.dao.TABLE_ITEM_SINGLE_DAY)
         begin = 0
         end = 500
         max = len(param) - 1
@@ -52,12 +56,28 @@ class VisualGraphics:
             if end >= max:
                 break
             idList = param[begin:end]
+            ret,dataList = self.dao.getInfo()
+            if not ret:
+                Logger.info(f"查询失败!idList:{idList}")
+                return
 
+            for data in dataList:
+                m[data['item_id']].append({
+                    "calc_day":data.get('calc_day',0),
+                    "sell_online_count":data.get('sell_online_count',0),
+                    "prices":data.get('prices',0)
+                })
 
 
             begin = end
             end += 500
 
+        # 生成走势图
+        for key,v in m.items():
+            if mapInfo[key]:
+                self.ItemInfo2VisualGraphics(v,f"{mapInfo[key]}")
+
+        return
 
 
 
@@ -88,6 +108,14 @@ class VisualGraphics:
         return True, idList,mapInfo
 
     def ItemInfo2VisualGraphics(self, data, file_name):
+        # 数据示例
+        # data = [
+        #     {"date": "2023-08-01", "quantity": 100, "selling_price": 20.5},
+        #     {"date": "2023-08-02", "quantity": 150, "selling_price": 19.0},
+        #     {"date": "2023-08-03", "quantity": 120, "selling_price": 21.5},
+        #     # ...（更多数据）
+        # ]
+
         # 将数据转换为 DataFrame
         df = pd.DataFrame(data)
 
@@ -128,6 +156,7 @@ class VisualGraphics:
 
         # 显示图形
         plt.show()
+        Logger.info(f"file_name:{file_name} 走势图导出成功!")
         return
 
 

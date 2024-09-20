@@ -79,11 +79,23 @@ def runDaemon(api):
     method()
 
 
-def array_column(self,arr, col):
+def array_column(arr, col):
     retList = []
     for item in arr:
         retList.append(item.get(col))
     return retList
+
+
+# 根据系统的核心数量获取尽可能多可创建的线程数量
+def GetThreadCountByCore() -> int:
+    cnt = os.cpu_count()
+    if not cnt or cnt == 1:
+        return 1
+
+    if cnt-1 < 2:
+        return 2
+
+    return cnt - 1
 
 
 # cUrl(bash) 转 对应语言的代码

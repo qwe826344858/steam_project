@@ -8,6 +8,15 @@ class ItemDao(CommonDao):
     database = "Steam_Project"
     table_name = "t_steam_item"
 
+    TABLE_ITEM = "t_steam_item"
+    TABLE_ITEM_SINGLE_DAY = "t_steam_item_single_day_info"
+
+    def SetTable(self,table):
+        self.table_name = table
+
+    def SetDataBase(self,database):
+        self.database = database
+
     # 分批获取数据
     def getIteamInfoByLastID(self, lastID, pageSize, field="*"):
         Logger.info(f"lastID:{lastID}")
