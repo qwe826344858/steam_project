@@ -1,7 +1,7 @@
 import time
 
 from common_tools.loggerHelper import Logger
-from common_dao import CommonDao
+from DAO.common_dao import CommonDao
 
 Logger.init()
 class ItemDao(CommonDao):
@@ -21,7 +21,7 @@ class ItemDao(CommonDao):
     def getIteamInfoByLastID(self, lastID, pageSize, field="*"):
         Logger.info(f"lastID:{lastID}")
         dataList = []
-        sql = f"select * from {self.table_name}" \
+        sql = f"select * from {self.table_name} " \
               f"where fid > {lastID} " \
               f"order by `fid` ASC " \
               f"limit {pageSize};"
@@ -91,3 +91,30 @@ class ItemDao(CommonDao):
 
         Logger.info(f"更新记录成功! filter:{filter} updateInfo:{updateInfo}")
         return True
+
+
+    # 分批获取每日记录数据
+    def getIteamInfoSingleDayByLastID(self,filter, lastID, pageSize, field="*",begin=0,end=0):
+        Logger.info(f"lastID:{lastID}")
+        dataList = []
+        filter_str = self._TranMap2Filter(filter)
+        time_str = ""
+        if begin and end:
+            time_str = f"calc_day > {begin} and calc_day < {end}"
+
+        sql = f"select * from {self.table_name} " \
+              f"where fid > {lastID} and " \
+              f"{filter_str} " \
+              f"{time_str} " \
+              f"order by `fid` ASC " \
+              f"limit {pageSize};"
+
+        ret, data = self.dbHelper.execute_query(sql)
+        if not ret:
+            Logger.info(f"getIteamInfoSingleDayByLastID 查询失败 lastSql:{sql}")
+            return False, []
+
+        for v in data:
+            dataList.append(self._TranMapBusinessKey(v))
+
+        return True, dataList

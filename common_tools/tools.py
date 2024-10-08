@@ -90,12 +90,9 @@ def array_column(arr, col):
 def GetThreadCountByCore() -> int:
     cnt = os.cpu_count()
     if not cnt or cnt == 1:
-        return 1
-
-    if cnt-1 < 2:
         return 2
 
-    return cnt - 1
+    return cnt * 2 - 1
 
 
 # cUrl(bash) 转 对应语言的代码
