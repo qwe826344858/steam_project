@@ -1,10 +1,10 @@
 import datetime
 import json
 import re
+import threading
+import time
 from datetime import timedelta
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
+import concurrent.futures
 from matplotlib import font_manager
 
 from common_tools.tools import runDaemon
@@ -15,6 +15,7 @@ from DAO import cs_item_dao
 Logger.init()
 
 mapInfo = []    # 商品信息,全局变量
+picLock = threading.Lock()
 class VisualGraphics:
     dao = None
 
@@ -46,36 +47,64 @@ class VisualGraphics:
         Logger.info(f"px:{param}")
         # 使用日价表 取30天的价格走势
         current_time = datetime.datetime.now()
-        begin = int(current_time.strftime('%Y%m%d'))
-        end = int((current_time - timedelta(days=30)).strftime('%Y%m%d'))
+        end = int(current_time.strftime('%Y%m%d'))
+        begin = int((current_time - timedelta(days=30)).strftime('%Y%m%d'))
         self.dao.SetTable(self.dao.TABLE_ITEM_SINGLE_DAY)
-        for id in param:
-            idList = [id]
-            arr = []
-            lastID = 0
-            while 1:
-                # idList = param[begin:end]
-                ret,dataList = self.dao.getIteamInfoSingleDayByLastID(filter={'item_id':idList},lastID=lastID,pageSize=1000,begin=begin,end=end)
-                if not ret:
-                    Logger.info(f"查询失败!idList:{idList}")
-                    return False
-                if not dataList:
-                    Logger.info(f"查询为空!结束查询 ==> idList:{idList}")
-                    break
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+            for item_id in param:
+                self.getSingleItemInfo2trans(item_id,begin,end,pool)
+            # idList = [item_id]
+            # arr = []
+            # lastID = 0
+            # while 1:
+            #     # idList = param[begin:end]
+            #     ret,dataList = self.dao.getIteamInfoSingleDayByLastID(filter={'item_id':item_id},lastID=lastID,pageSize=1000,begin=begin,end=end)
+            #     if not ret:
+            #         Logger.info(f"查询失败!idList:{idList}")
+            #         return False
+            #     if not dataList:
+            #         Logger.info(f"查询为空!结束查询 ==> idList:{idList}")
+            #         break
+            #
+            #     Logger.info(f"single day datalist:"+json.dumps(dataList))
+            #     for data in dataList:
+            #         arr.append({
+            #             "calc_day":data.get('calc_day',0),
+            #             "sell_online_count":data.get('sell_online_count',0),
+            #             "prices":data.get('prices',0)
+            #         })
+            #     lastID = dataList[-1].get('id')
 
-                Logger.info(f"single day datalist:"+json.dumps(dataList))
-                for data in dataList:
-                    arr.append({
-                        "calc_day":data.get('calc_day',0),
-                        "sell_online_count":data.get('sell_online_count',0),
-                        "prices":data.get('prices',0)
-                    })
-                lastID = dataList[-1].get('id')
-
-            if arr:
-                self.ItemInfo2VisualGraphics(arr, f"{id}_{mapInfo[id]}")
+            # if arr:
+            #     self.ItemInfo2VisualGraphics(arr, f"{item_id}_{mapInfo[item_id]}")
         return True
 
+    def getSingleItemInfo2trans(self,item_id,begin,end,pool):
+        arr = []
+        lastID = 0
+        while True:
+            ret,dataList = self.dao.getIteamInfoSingleDayByLastID(filter={'item_id':item_id},lastID=lastID,pageSize=1000,begin=begin,end=end)
+            if not ret:
+                Logger.info(f"查询失败!id:{item_id}")
+                return False
+            if not dataList:
+                Logger.info(f"查询为空!结束查询 ==> id:{item_id}")
+                break
+
+            Logger.info(f"single day datalist:"+json.dumps(dataList))
+            for data in dataList:
+                arr.append({
+                    "calc_day":data.get('calc_day',0),
+                    "sell_online_count":data.get('sell_online_count',0),
+                    "prices":data.get('prices',0)
+                })
+            lastID = dataList[-1].get('id')
+
+        if arr:
+            Logger.info(f"=====>输出图片 item:{item_id}")
+            pool.submit(self.ItemInfo2VisualGraphics,arr, f"{item_id}_{mapInfo[item_id]}")
+
+        return True
 
 
     def getItemIdList(self):
@@ -107,9 +136,9 @@ class VisualGraphics:
     def ItemInfo2VisualGraphics(self, data, file_name):
         if not data:
           Logger.info(f"无数据,不生成走势图! file_name:{file_name}")
-          return
+          return True
 
-        Logger.info(f"VisualGraphics input data:"+json.dumps(data))
+        # Logger.info(f"VisualGraphics input data:"+json.dumps(data))
 
         # 数据示例
         # data = [
@@ -127,6 +156,11 @@ class VisualGraphics:
         # matplotlib.rcParams['font.sans-serif'] = ['SimHei']  # 黑体
         # matplotlib.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
+        import matplotlib
+        matplotlib.use('Agg')
+        import seaborn as sns
+        import pandas as pd
+        import matplotlib.pyplot as plt
         # # linux
         # 设置字体路径
         font_path = '/usr/share/fonts/python_font/SimHei.ttf'  # 根据实际路径调整
@@ -155,7 +189,7 @@ class VisualGraphics:
 
         # 绘制在售数量
         plt.subplot(2, 1, 1)
-        sns.lineplot(data=recent_data, x='date', y='sell_online_count', marker='o')
+        sns.lineplot(data=recent_data, x='date', y='sell_online_count', marker='o', label='在售数量')
         #sns.lineplot(data=recent_data, x='date', y='sell_online_count', marker='o')
         plt.title('在售数量随时间变化')
         plt.xlabel('日期')
@@ -165,7 +199,7 @@ class VisualGraphics:
         # 绘制售价
         plt.subplot(2, 1, 2)
         #sns.lineplot(data=recent_data, x='date', y='selling_price', marker='o', color='orange')
-        sns.lineplot(data=recent_data, x=recent_data.index, y='prices', marker='o', color='orange')
+        sns.lineplot(data=recent_data, x=recent_data.index, y='prices', marker='o', color='orange', label='售价')
         plt.title('售价随时间变化')
         plt.xlabel('日期')
         plt.ylabel('售价')
@@ -177,13 +211,23 @@ class VisualGraphics:
         file_name = re.sub(r"[^\u4e00-\u9fa5A-Za-z0-9]+", "_", file_name)
         save_name = f"/home/lighthouse/test_py/Visualization/{file_name}.png"
         Logger.info(f"save_name:{save_name}")
-        plt.savefig(save_name)
 
-        # 显示图形 服务器上就linux就不用了
-        # plt.show()
-        plt.close()
+        # 加锁
+        picLock.acquire()
+        try:
+            plt.savefig(save_name)
+            time.sleep(1)
+            # 显示图形 服务器上就linux就不用了
+            # plt.show()
+            plt.close()
+        finally:
+            # 释放锁
+            picLock.release()
+
+
+
         Logger.info(f"file_name:{file_name} 走势图导出成功!")
-        return
+        return True
 
     def test(self):
         data = [
@@ -205,8 +249,12 @@ class VisualGraphics:
             # ...（更多数据）
         ]
 
-        file_name = "test2Image"
-        self.ItemInfo2VisualGraphics(data=data, file_name=file_name)
+        # file_name = "test2Image"
+        # self.ItemInfo2VisualGraphics(data=data, file_name=file_name)
+        idList= [i for i in range(1,11)]
+        global mapInfo
+        mapInfo = {i:i for i in range(1, 11)}
+        self.transItemInfo2Pic(idList)
 
 if __name__ == '__main__':
     runDaemon(api=VisualGraphics())

@@ -70,6 +70,8 @@ class DBHelper:
 
     def execute_query(self, query):
         try:
+            if not self.connection.is_connected():
+                self.connection.reconnect()  # 重新连接
             cursor = self.connection.cursor()
             cursor.execute(query)
             result = self._TranRawData2DictList(cursor)
@@ -78,9 +80,13 @@ class DBHelper:
         except mysql.connector.Error as error:
             Logger.info("执行查询时出错: {}".format(error))
             return False,{}
+        finally:
+            cursor.close()      # 并发处理时需要关闭浮标
 
     def execute_update(self, query):
         try:
+            if not self.connection.is_connected():
+                self.connection.reconnect()  # 重新连接
             cursor = self.connection.cursor()
             cursor.execute(query)
             self.connection.commit()
@@ -94,6 +100,8 @@ class DBHelper:
 
     def execute_delete(self, query):
         try:
+            if not self.connection.is_connected():
+                self.connection.reconnect()  # 重新连接
             cursor = self.connection.cursor()
             cursor.execute(query)
             self.connection.commit()
@@ -107,6 +115,8 @@ class DBHelper:
 
     def execute_insert(self, query):
         try:
+            if not self.connection.is_connected():
+                self.connection.reconnect()  # 重新连接
             cursor = self.connection.cursor()
             cursor.execute(query)
             self.connection.commit()

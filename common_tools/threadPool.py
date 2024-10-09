@@ -2,19 +2,19 @@ import threading
 import queue
 
 from common_tools.loggerHelper import Logger
-from common_tools.tools import GetThreadCountByCore
+import common_tools.tools as tool
 
 Logger.init()
 
 
 class ThreadPool:
-    def __init__(self, max_workers):
+    def __init__(self, max_workers=0):
         self.tasks = queue.Queue()
         self.threads = []
         self.shutdown_flag = threading.Event()
 
         if not max_workers:
-            max_workers = GetThreadCountByCore
+            max_workers = tool.GetThreadCountByCore()
             Logger.info(f"无指定线程池大小,默认按系统分配 max_workers:{max_workers}")
 
         for _ in range(max_workers):
@@ -32,8 +32,13 @@ class ThreadPool:
     def run(self):
         while not self.shutdown_flag.is_set():
             try:
-                task, args, kwargs = self.tasks.get(timeout=1)
-                task(*args, **kwargs)
+                func, args, kwargs = self.tasks.get(timeout=1)
+                Logger.info(f"arg:{args} kwargs:{kwargs}")
+                result = func(*args, **kwargs)
+                if not result:
+                    Logger.info("error: Thread terminated due to function returning False.")
+                    self.shutdown_flag.set()  # 终止当前线程
+                self.tasks.task_done()
             except queue.Empty:
                 continue
 

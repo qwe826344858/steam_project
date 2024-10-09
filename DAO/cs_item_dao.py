@@ -100,7 +100,9 @@ class ItemDao(CommonDao):
         filter_str = self._TranMap2Filter(filter)
         time_str = ""
         if begin and end:
-            time_str = f"calc_day > {begin} and calc_day < {end}"
+            if filter_str:
+                time_str = "and "
+            time_str = time_str + f" `fcalc_day` > {begin} and `fcalc_day` < {end}"
 
         sql = f"select * from {self.table_name} " \
               f"where fid > {lastID} and " \
