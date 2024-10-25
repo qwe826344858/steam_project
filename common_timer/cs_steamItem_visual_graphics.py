@@ -15,6 +15,8 @@ from DAO import cs_item_dao
 Logger.init()
 
 mapInfo = []    # 商品信息,全局变量
+max_day = 30    # 查询的商品价格时间维度周期
+
 picLock = threading.Lock()
 class VisualGraphics:
     dao = None
@@ -48,7 +50,7 @@ class VisualGraphics:
         # 使用日价表 取30天的价格走势
         current_time = datetime.datetime.now()
         end = int(current_time.strftime('%Y%m%d'))
-        begin = int((current_time - timedelta(days=30)).strftime('%Y%m%d'))
+        begin = int((current_time - timedelta(days=max_day)).strftime('%Y%m%d'))
         self.dao.SetTable(self.dao.TABLE_ITEM_SINGLE_DAY)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
             for item_id in param:
@@ -134,87 +136,88 @@ class VisualGraphics:
         return True, idList,mapInfo
 
     def ItemInfo2VisualGraphics(self, data, file_name):
-        if not data:
-          Logger.info(f"无数据,不生成走势图! file_name:{file_name}")
-          return True
-
-        # Logger.info(f"VisualGraphics input data:"+json.dumps(data))
-
-        # 数据示例
-        # data = [
-        #     {"date": "2023-08-01", "quantity": 100, "selling_price": 20.5},
-        #     {"date": "2023-08-02", "quantity": 150, "selling_price": 19.0},
-        #     {"date": "2023-08-03", "quantity": 120, "selling_price": 21.5},
-        #     # ...（更多数据）
-        # ]
-
-        # 使用GUI 的后端，在本地显示图形 服务器上就linux就不用了
-        # matplotlib.use('TKAgg')
-
-        # # # 设置字体为支持中文的字体
-        # # windows
-        # matplotlib.rcParams['font.sans-serif'] = ['SimHei']  # 黑体
-        # matplotlib.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
-
-        import matplotlib
-        matplotlib.use('Agg')
-        import seaborn as sns
-        import pandas as pd
-        import matplotlib.pyplot as plt
-        # # linux
-        # 设置字体路径
-        font_path = '/usr/share/fonts/python_font/SimHei.ttf'  # 根据实际路径调整
-        font_prop = font_manager.FontProperties(fname=font_path)
-        plt.rcParams['font.family'] = font_prop.get_name()
-
-        # 将数据转换为 DataFrame
-        df = pd.DataFrame(data)
-
-        # 确保日期列为 datetime 类型
-        df['date'] = pd.to_datetime(df['calc_day'],format='%Y%m%d')
-        df['sell_online_count'] = pd.to_numeric(df['sell_online_count'])
-        df['prices'] = pd.to_numeric(df['prices'])
-
-        # 设置日期为索引
-        df.set_index('date', inplace=True)
-
-        # 选择最近 30 天的数据
-        end_date = df.index.max()
-        start_date = end_date - timedelta(days=30)
-        recent_data = df[start_date:end_date]
-        Logger.info(f"recent_data:{recent_data}")
-
-        # 可视化
-        plt.figure(figsize=(12, 6))
-
-        # 绘制在售数量
-        plt.subplot(2, 1, 1)
-        sns.lineplot(data=recent_data, x='date', y='sell_online_count', marker='o', label='在售数量')
-        #sns.lineplot(data=recent_data, x='date', y='sell_online_count', marker='o')
-        plt.title('在售数量随时间变化')
-        plt.xlabel('日期')
-        plt.ylabel('在售数量')
-        plt.xticks(rotation=45)
-
-        # 绘制售价
-        plt.subplot(2, 1, 2)
-        #sns.lineplot(data=recent_data, x='date', y='selling_price', marker='o', color='orange')
-        sns.lineplot(data=recent_data, x=recent_data.index, y='prices', marker='o', color='orange', label='售价')
-        plt.title('售价随时间变化')
-        plt.xlabel('日期')
-        plt.ylabel('售价')
-        plt.xticks(rotation=45)
-
-        plt.tight_layout()
-
-        # 保存图形为图片
-        file_name = re.sub(r"[^\u4e00-\u9fa5A-Za-z0-9]+", "_", file_name)
-        save_name = f"/home/lighthouse/test_py/Visualization/{file_name}.png"
-        Logger.info(f"save_name:{save_name}")
-
         # 加锁
         picLock.acquire()
         try:
+            if not data:
+              Logger.info(f"无数据,不生成走势图! file_name:{file_name}")
+              return True
+
+            # Logger.info(f"VisualGraphics input data:"+json.dumps(data))
+
+            # 数据示例
+            # data = [
+            #     {"date": "2023-08-01", "quantity": 100, "selling_price": 20.5},
+            #     {"date": "2023-08-02", "quantity": 150, "selling_price": 19.0},
+            #     {"date": "2023-08-03", "quantity": 120, "selling_price": 21.5},
+            #     # ...（更多数据）
+            # ]
+
+            # 使用GUI 的后端，在本地显示图形 服务器上就linux就不用了
+            # matplotlib.use('TKAgg')
+
+            # # # 设置字体为支持中文的字体
+            # # windows
+            # matplotlib.rcParams['font.sans-serif'] = ['SimHei']  # 黑体
+            # matplotlib.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+
+            import matplotlib
+            matplotlib.use('Agg')
+            import seaborn as sns
+            import pandas as pd
+            import matplotlib.pyplot as plt
+            # # linux
+            # 设置字体路径
+            font_path = '/usr/share/fonts/python_font/SimHei.ttf'  # 根据实际路径调整
+            font_prop = font_manager.FontProperties(fname=font_path)
+            plt.rcParams['font.family'] = font_prop.get_name()
+
+            # 将数据转换为 DataFrame
+            df = pd.DataFrame(data)
+
+            # 确保日期列为 datetime 类型
+            df['date'] = pd.to_datetime(df['calc_day'],format='%Y%m%d')
+            df['sell_online_count'] = pd.to_numeric(df['sell_online_count'])
+            df['prices'] = pd.to_numeric(df['prices'])
+
+            # 设置日期为索引
+            df.set_index('date', inplace=True)
+
+            # 选择最近 30 天的数据
+            end_date = df.index.max()
+            start_date = end_date - timedelta(days=len(data))
+            recent_data = df[start_date:end_date]
+            Logger.info(f"recent_data:{recent_data}")
+
+            # 可视化
+            plt.figure(figsize=(12, 6))
+
+            # 绘制在售数量
+            plt.subplot(2, 1, 1)
+            sns.lineplot(data=recent_data, x='date', y='sell_online_count', marker='o', label='在售数量')
+            #sns.lineplot(data=recent_data, x='date', y='sell_online_count', marker='o')
+            plt.title('在售数量随时间变化')
+            plt.xlabel('日期')
+            plt.ylabel('在售数量')
+            plt.xticks(rotation=45)
+
+            # 绘制售价
+            plt.subplot(2, 1, 2)
+            #sns.lineplot(data=recent_data, x='date', y='selling_price', marker='o', color='orange')
+            sns.lineplot(data=recent_data, x=recent_data.index, y='prices', marker='o', color='orange', label='售价')
+            plt.title('售价随时间变化')
+            plt.xlabel('日期')
+            plt.ylabel('售价')
+            plt.xticks(rotation=45)
+
+            plt.tight_layout()
+
+            # 保存图形为图片
+            file_name = re.sub(r"[^\u4e00-\u9fa5A-Za-z0-9]+", "_", file_name)
+            save_name = f"/home/lighthouse/test_py/Visualization/{file_name}.png"
+            Logger.info(f"save_name:{save_name}")
+
+
             plt.savefig(save_name)
             time.sleep(1)
             # 显示图形 服务器上就linux就不用了
