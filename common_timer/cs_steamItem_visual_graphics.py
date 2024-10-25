@@ -187,7 +187,7 @@ class VisualGraphics:
             end_date = df.index.max()
             start_date = end_date - timedelta(days=len(data))
             recent_data = df[start_date:end_date]
-            Logger.info(f"recent_data:{recent_data}")
+            # Logger.info(f"recent_data:{recent_data}")
 
             # 可视化
             plt.figure(figsize=(12, 6))
@@ -215,7 +215,7 @@ class VisualGraphics:
             # 保存图形为图片
             file_name = re.sub(r"[^\u4e00-\u9fa5A-Za-z0-9]+", "_", file_name)
             save_name = f"/home/lighthouse/test_py/Visualization/{file_name}.png"
-            Logger.info(f"save_name:{save_name}")
+            #Logger.info(f"save_name:{save_name}")
 
 
             plt.savefig(save_name)
