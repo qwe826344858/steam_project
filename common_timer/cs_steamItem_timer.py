@@ -70,7 +70,7 @@ class CS_SteamItem_Timer:
         """
 
         # 查
-        sql_str_select = f"SELECT * FROM {self.table_name} WHERE `Fuid` > 1;"
+        sql_str_select = f"SELECT * FROM {self.table_name} WHERE `Fid` > 1 Limit 20;"
         ret,data = dbHelper.execute_query(sql_str_select)
         if not ret :
             print("CS_SteamItem_Timer 查询失败")

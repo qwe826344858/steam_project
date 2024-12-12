@@ -5,7 +5,7 @@ def getEnvConfig():
         },
         "mysql_conf": {
             "host": "localhost",
-            "username": "Name",
-            "password": "Pwd",
+            "username": "root",
+            "password": "zoneslee",
         }
     }

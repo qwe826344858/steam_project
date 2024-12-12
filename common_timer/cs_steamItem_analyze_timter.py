@@ -36,7 +36,7 @@ class CS_SteamItem_Analyze_Timer:
                 print("读取文件启动预测失败!")
                 return False
         else:
-            print(f"type:{sys.argv[2]}")
+            print(f"入参异常 示例:python3 cs_steamItem_analyze_timter.py runAnalyze 13092")
         return
 
     # 分析文件
