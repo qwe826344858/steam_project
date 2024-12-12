@@ -1,3 +1,4 @@
+from common_tools.envPythonConfig import getEnvConfig
 from common_tools.loggerHelper import Logger
 from common_tools.commonConfig import CommonConfig
 from common_tools.mysql import DBHelper
@@ -12,8 +13,8 @@ class CommonDao:
 
     def __init__(self):
         # 初始化DB
-        commonConfig = CommonConfig()
-        self.mysql_config = commonConfig.getMysqlConfig()
+        commonConfig = getEnvConfig()
+        self.mysql_config = commonConfig.get("mysql_conf")
         self.dbHelper = DBHelper(
             host=self.mysql_config['host'],
             username=self.mysql_config['username'],

@@ -5,6 +5,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
+from common_tools.envPythonConfig import getEnvConfig
+
 sys.path.append("/home/lighthouse/test_py")
 from common_tools.commonConfig import CommonConfig
 from common_tools.mysql import DBHelper
@@ -21,8 +23,8 @@ class CS_SteamItem_Analyze_Timer:
 
     def __init__(self):
         # 初始化DB
-        commonConfig = CommonConfig()
-        mysql_config = commonConfig.getMysqlConfig()
+        commonConfig = getEnvConfig()
+        mysql_config = commonConfig.get("mysql_conf")
         self.dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
 
 

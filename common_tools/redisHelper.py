@@ -1,6 +1,8 @@
 import redis
 
 import sys
+from common_tools.envPythonConfig import getEnvConfig
+
 sys.path.append("/home/lighthouse/test_py/common_tools")
 from tools import getCurrentFileInfo, getCurrentMethodName, setReturn, initSet
 
@@ -50,8 +52,12 @@ def initConnect(pool_connect):
 # 获取 Redis 连接
 def get_redis_connection():
     global redis_connect
+
+    conf = getEnvConfig()
+    redis_host = conf.get("redis_conf").get("host")
+    redis_port = 6379
     try:
-        redis_connect = redis.Redis(connection_pool=pool)
+        redis_connect = redis.Redis(host=redis_host,port=redis_port)
     except Exception as e:
         print(f"获取redis对象失败!errMsg:{e}")
         return False, None
