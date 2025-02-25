@@ -5,6 +5,8 @@ import os
 import time
 import openpyxl
 
+from common_tools.envPythonConfig import getEnvConfig
+
 sys.path.append("/home/lighthouse/test_py")
 from common_tools.commonConfig import CommonConfig
 from common_tools.mysql import DBHelper
@@ -23,14 +25,14 @@ class CS_SteamItem_Timer:
 
     def __init__(self):
         # 初始化DB
-        commonConfig = CommonConfig()
-        mysql_config = commonConfig.getMysqlConfig()
+        commonConfig = getEnvConfig()
+        mysql_config = commonConfig.get("mysql_conf")
         self.dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
 
     def test(self):
         self.table_name = "t_steam_item"
-        commonConfig = CommonConfig()
-        mysql_config = commonConfig.getMysqlConfig()
+        commonConfig = getEnvConfig()
+        mysql_config = commonConfig.get("mysql_conf")
 
         dbHelper = DBHelper(host=mysql_config['host'], username=mysql_config['username'], password=mysql_config['password'], database=self.database,table_name=self.table_name)
 
@@ -68,7 +70,7 @@ class CS_SteamItem_Timer:
         """
 
         # 查
-        sql_str_select = f"SELECT * FROM {self.table_name} WHERE `Fuid` > 1;"
+        sql_str_select = f"SELECT * FROM {self.table_name} WHERE `Fid` > 1 Limit 20;"
         ret,data = dbHelper.execute_query(sql_str_select)
         if not ret :
             print("CS_SteamItem_Timer 查询失败")

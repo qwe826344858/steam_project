@@ -33,3 +33,11 @@ class CommonConfig:
         }
 
         return config
+
+    # 获取grpc基本配置
+    @staticmethod
+    def getGrpcConfig():
+        return {
+            "host":"localhost",
+            "port":40000
+        }

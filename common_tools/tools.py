@@ -1,4 +1,6 @@
 import json
+import sys
+
 import requests
 import os
 import inspect
@@ -59,6 +61,38 @@ def getCurrentMethodName():
     frame = inspect.currentframe().f_back
     method_name = frame.f_code.co_name
     return method_name
+
+
+def runDaemon(api):
+    # 通过命令行输入方法名进行调用
+    method_name = sys.argv[1]     # 获取命令中第一个额外参数
+
+    # 获取方法对象
+    method = getattr(api, method_name, None)
+
+    # 检查方法是否存在
+    if method is None or not callable(method):
+        print(f"方法 '{method_name}' 不存在或不可调用")
+        sys.exit(1)
+
+    # 调用方法
+    method()
+
+
+def array_column(arr, col):
+    retList = []
+    for item in arr:
+        retList.append(item.get(col))
+    return retList
+
+
+# 根据系统的核心数量获取尽可能多可创建的线程数量
+def GetThreadCountByCore() -> int:
+    cnt = os.cpu_count()
+    if not cnt or cnt == 1:
+        return 2
+
+    return cnt * 2 - 1
 
 
 # cUrl(bash) 转 对应语言的代码
